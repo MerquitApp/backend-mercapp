@@ -1,15 +1,32 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Users } from './entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersService {
+  constructor(
+    @InjectRepository(Users)
+    private readonly userRepository: Repository<Users>,
+  ) {}
+
   create(createUserDto: CreateUserDto) {
-    // return 'This action adds a new user';
-    throw new HttpException(
-      'Method not implemented.',
-      HttpStatus.NOT_IMPLEMENTED,
-    );
+    return this.userRepository.save(createUserDto);
+  }
+
+  // Agregado 28/11/2024 por Andy
+  findOneByEmail(email: string) {
+    return this.userRepository.findOneBy({ email });
+  }
+
+  // Agregado 28/11/2024 por Andy
+  findByEmailWithPassword(email: string) {
+    return this.userRepository.findOne({
+      where: { email },
+      select: ['user_id', 'name', 'email', 'password', 'role'],
+    });
   }
 
   findAll() {
