@@ -12,3 +12,39 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  user_id            Int        @id @default(autoincrement())
+  registration_date  DateTime   @default(now())
+  name               String     @db.VarChar(100)
+  email              String     @unique @db.VarChar(45)
+  phone_number       String     @unique
+  role               String     @default("user")
+  verification_state Boolean    @default(false)
+  password           String     @db.VarChar(100)
+  profile_picture    String?
+
+  reputations        Reputation[]
+  activities         Activity[]
+
+  @@map("usuario")
+}
+
+model Reputation {
+  id          Int      @id @default(autoincrement())
+  score       Int
+  comment     String
+  userId      Int
+  user        User     @relation(fields: [userId], references: [user_id])
+
+  @@map("reputacion")
+}
+
+model Activity {
+  id          Int      @id @default(autoincrement())
+  description String
+  userId      Int
+  user        User     @relation(fields: [userId], references: [user_id])
+
+  @@map("actividad")
+}
