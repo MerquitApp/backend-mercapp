@@ -15,8 +15,4 @@ import { GeneralExceptionFilter } from 'src/filters/exceptions/general-exception
   ],
   exports: [UsersService],
 })
-export class UsersModule {
-  constructor() {
-    console.log('UsersModule');
-  }
-}
+export class UsersModule {}
