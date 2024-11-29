@@ -1,7 +1,7 @@
 import { Transform } from 'class-transformer';
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
-export class RegisterDto {
+export class RegisterUsersDto {
   @Transform(({ value }) => value.trim())
   @IsString()
   @MinLength(1)

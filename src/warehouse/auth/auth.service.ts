@@ -1,65 +1,51 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { RegisterDto } from './dto/register.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from 'src/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import * as bcryptjs from 'bcryptjs';
-import { UsersService } from '../users/users.service';
+import * as bcrypt from 'bcryptjs';
 import { LoginDto } from './dto/login-user.dto';
+import { UsersService } from '../users/users.service';
+import { RegisterUsersDto } from './dto/register-user.dto';
+import { Users } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly prismaService: PrismaService,
+    private jwtService: JwtService,
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
   ) {}
 
-  async register({ name, email, password }: RegisterDto) {
-    const user = await this.usersService.findOneByEmail(email);
+  async login(loginDto: LoginDto): Promise<any> {
+    const { user_id, password } = loginDto;
 
-    if (user) {
-      throw new BadRequestException('User already exists');
-    }
-
-    this.usersService.create({
-      name: name,
-      email: email,
-      password: await bcryptjs.hash(password, 10),
-      phone_number: '',
-      role: '',
-      verification_state: false,
-      profile_picture: '',
+    const users = await this.prismaService.user.findUnique({
+      where: { user_id },
     });
 
-    return {
-      name,
-      email,
-    };
-  }
-
-  async login({ email, password }: LoginDto) {
-    const user = await this.usersService.findByEmailWithPassword(email);
-    if (!user) {
-      throw new UnauthorizedException('email is wrong');
+    if (!users) {
+      throw new NotFoundException('user not found');
     }
 
-    const isPasswordValid = await bcryptjs.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('password is wrong');
+    const validatePassword = await bcrypt.compare(password, users.password);
+
+    if (!validatePassword) {
+      throw new NotFoundException('Invalid password');
     }
 
-    const payload = { email: user.email, role: user.role };
-    const token = await this.jwtService.signAsync(payload);
-
     return {
-      token,
-      email,
+      token: this.jwtService.sign({ user_id }),
     };
   }
+  async register(createDto: RegisterUsersDto): Promise<any> {
+    const createUser = new Users();
+    createUser.name = createDto.name;
+    createUser.email = createDto.email;
+    createUser.password = await bcrypt.hash(createDto.password, 10);
 
-  async profile({ email, role }: { email: string; role: string }) {
-    return await this.usersService.findOneByEmail(email);
+    const user = await this.usersService.createUser(createUser);
+
+    return {
+      token: this.jwtService.sign({ user_id: user.user_id }),
+    };
   }
 }
