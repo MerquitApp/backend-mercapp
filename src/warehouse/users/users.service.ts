@@ -1,31 +1,34 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
+import { PrismaService } from 'src/prisma.service';
 import { Users } from './entities/user.entity';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(Users)
-    private readonly userRepository: Repository<Users>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  create(createUserDto: CreateUserDto) {
-    return this.userRepository.save(createUserDto);
+  async getAllUser(): Promise<Users[]> {
+    return this.prisma.user.findMany();
   }
 
-  // Agregado 28/11/2024 por Andy
-  findOneByEmail(email: string) {
-    return this.userRepository.findOneBy({ email });
-  }
+  async createUser(data: Users): Promise<Users> {
+    const existing = await this.prisma.user.findUnique({
+      where: {
+        user_id: data.user_id,
+      },
+    });
 
-  // Agregado 28/11/2024 por Andy
-  findByEmailWithPassword(email: string) {
-    return this.userRepository.findOne({
-      where: { email },
-      select: ['user_id', 'name', 'email', 'password', 'role'],
+    if (existing) {
+      throw new ConflictException('username already exists');
+    }
+
+    return this.prisma.user.create({
+      data,
     });
   }
 
