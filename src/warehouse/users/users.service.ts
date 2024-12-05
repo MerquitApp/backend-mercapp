@@ -36,11 +36,11 @@ export class UsersService {
     return `This action returns all users`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOne(user_id: number) {
+    return `This action returns a #${user_id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  update(user_id: number, updateUserDto: UpdateUserDto) {
     // return `This action updates a #${id} user`;
     throw new HttpException(
       'Error updating user.',
@@ -48,8 +48,21 @@ export class UsersService {
     );
   }
 
-  remove(id: number) {
+  async remove(user_id: number) {
     // return `This action removes a #${id} user`;
-    throw new Error('Method not implemented.');
+    const user = this.prisma.user.findUnique({
+      where: {
+        user_id,
+      },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    await this.prisma.user.delete({
+      where: {
+        user_id,
+      },
+    });
   }
 }
