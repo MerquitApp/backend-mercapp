@@ -1,8 +1,8 @@
-import { WarehouseModule } from './warehouse/warehouse.module';
 import { Module } from '@nestjs/common';
+import { ChatWsModule } from './chat-ws/chat-ws.module';
 
 @Module({
-  imports: [WarehouseModule],
+  imports: [ChatWsModule],
   controllers: [],
   providers: [],
 })
