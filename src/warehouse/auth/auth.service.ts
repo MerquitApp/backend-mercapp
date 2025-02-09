@@ -36,6 +36,24 @@ export class AuthService {
       token: this.jwtService.sign({ user_id }),
     };
   }
+
+  async verify(token: string): Promise<any> {
+    const { user_id } = this.jwtService.verify(token);
+    const user = await this.prismaService.user.findUnique({
+      where: { user_id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+
+    return {
+      user_id,
+      name: user.name,
+      email: user.email,
+    };
+  }
+
   async register(createDto: RegisterUsersDto): Promise<any> {
     const createUser = new Users();
     createUser.name = createDto.name;

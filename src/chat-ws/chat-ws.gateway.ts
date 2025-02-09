@@ -1,6 +1,9 @@
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
@@ -8,8 +11,16 @@ import { ChatWsService } from './chat-ws.service';
 import { Socket } from 'socket.io';
 
 @WebSocketGateway()
-export class ChatWsGateway {
+export class ChatWsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly chatWsService: ChatWsService) {}
+
+  handleConnection(client: any) {
+    // TODO
+  }
+
+  handleDisconnect(client: any) {
+    // TODO
+  }
 
   @SubscribeMessage('message')
   handleMessage(
