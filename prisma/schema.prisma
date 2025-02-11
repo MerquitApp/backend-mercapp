@@ -18,7 +18,7 @@ model User {
   profile_picture    String?
   activities         Activity[]
   reputations        Reputation[]
-  created_at         DateTime     @default(now())
+  created_at         DateTime     @default(now()) @map("registration_date")
 
   @@map("usuario")
 }

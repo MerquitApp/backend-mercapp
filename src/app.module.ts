@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ProductImagesModule } from './product-images/product-images.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
     ProductImagesModule,
     UsersModule,
     AuthModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [],
