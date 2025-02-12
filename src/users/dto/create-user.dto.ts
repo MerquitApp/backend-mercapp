@@ -1,20 +1,25 @@
-import {
-  IsAlpha,
-  IsEmail,
-  IsNotEmpty,
-  IsStrongPassword,
-} from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsEmail, IsPhoneNumber, IsString, MinLength } from 'class-validator';
 
 export class CreateUserDto {
-  @IsAlpha('es-ES', {
-    message: 'El nombre no puede contener caracteres especiales',
-  })
-  @IsNotEmpty()
+  @Transform(({ value }) => value.trim())
+  @IsString()
+  @MinLength(1)
   name: string;
 
   @IsEmail()
   email: string;
 
-  @IsStrongPassword()
+  @Transform(({ value }) => value.trim())
+  @IsString()
+  @MinLength(6)
   password: string;
+
+  @Transform(({ value }) => value.trim())
+  @IsString()
+  @MinLength(6)
+  confirmPassword: string;
+
+  @IsPhoneNumber()
+  phoneNumber: string;
 }

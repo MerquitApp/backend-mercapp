@@ -7,6 +7,7 @@ import {
   Get,
   HttpStatus,
   UseGuards,
+  HttpException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login-user.dto';
@@ -34,9 +35,16 @@ export class AuthController {
       });
 
       return response.status(200).json({
-        status: 'Success!',
+        ...result.user,
       });
     } catch (err) {
+      if (err instanceof HttpException) {
+        return response.status(err.getStatus()).json({
+          status: 'Error!',
+          message: err.message,
+        });
+      }
+
       return response.status(500).json({
         status: 'Error!',
         message: 'Internal Server Error!',
