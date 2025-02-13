@@ -4,11 +4,11 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Users } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { createOauthUserDto } from './dto/create-user-oauth.dto';
 
 @Injectable()
 export class UsersService {
@@ -36,8 +36,20 @@ export class UsersService {
     });
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async createOrFindOauthUser(data: createOauthUserDto): Promise<Users> {
+    const existing = await this.findByEmail(data.email);
+
+    if (existing) {
+      return existing;
+    }
+
+    return this.prisma.user.create({
+      data: {
+        email: data.email,
+        name: data.name,
+        profile_picture: data.profile_picture,
+      },
+    });
   }
 
   async findByEmail(email: string) {
@@ -68,14 +80,6 @@ export class UsersService {
     }
 
     return user;
-  }
-
-  update(user_id: number, updateUserDto: UpdateUserDto) {
-    // return `This action updates a #${id} user`;
-    throw new HttpException(
-      'Error updating user.',
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
   }
 
   async remove(user_id: number) {

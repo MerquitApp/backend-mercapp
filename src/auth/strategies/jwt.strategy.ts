@@ -3,13 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { AUTH_COOKIE } from 'src/common/constants';
-import { PrismaService } from 'src/prisma.service';
+import { UsersService } from 'src/users/users.service';
 import type { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private readonly prismaService: PrismaService,
+    private readonly usersService: UsersService,
     private readonly configService: ConfigService,
   ) {
     super({
@@ -26,12 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: { user_id: number }): Promise<any> {
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        user_id: payload.user_id,
-      },
-    });
-
+    const user = await this.usersService.findById(payload.user_id);
     if (!user) {
       throw new Error('User not found');
     }

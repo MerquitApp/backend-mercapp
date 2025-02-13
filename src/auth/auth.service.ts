@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login-user.dto';
 import { UsersService } from '../users/users.service';
 import { RegisterUsersDto } from './dto/register-user.dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -34,6 +35,12 @@ export class AuthService {
     return {
       token: this.jwtService.sign({ user_id: user.user_id }),
       user,
+    };
+  }
+
+  async getUserToken(user: User): Promise<any> {
+    return {
+      token: this.jwtService.sign({ user_id: user.user_id }),
     };
   }
 
