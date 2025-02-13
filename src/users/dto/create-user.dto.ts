@@ -25,10 +25,16 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({
-    description: 'Contraseña fuerte que cumpla con las políticas de seguridad.',
-    example: 'Str0ngP@ssword!',
-  })
-  @IsStrongPassword()
+  @Transform(({ value }) => value.trim())
+  @IsString()
+  @MinLength(6)
   password: string;
+
+  @Transform(({ value }) => value.trim())
+  @IsString()
+  @MinLength(6)
+  confirmPassword: string;
+
+  @IsPhoneNumber()
+  phoneNumber: string;
 }

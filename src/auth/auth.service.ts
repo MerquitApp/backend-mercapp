@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login-user.dto';
@@ -29,10 +33,17 @@ export class AuthService {
 
     return {
       token: this.jwtService.sign({ user_id: user.user_id }),
+      user,
     };
   }
 
   async register(createDto: RegisterUsersDto): Promise<any> {
+    const { password, confirmPassword } = createDto;
+
+    if (password.trim() !== confirmPassword.trim()) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
     try {
       await this.usersService.createUser(createDto);
     } catch (error) {

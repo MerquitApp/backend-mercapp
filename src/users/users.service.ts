@@ -31,6 +31,7 @@ export class UsersService {
         email: data.email,
         name: data.name,
         password: hashedPassword,
+        phone_number: data.phoneNumber,
       },
     });
   }
