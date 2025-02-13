@@ -15,10 +15,19 @@ import { Response } from 'express';
 import { RegisterUsersDto } from './dto/register-user.dto';
 import { AUTH_COOKIE, AUTH_COOKIE_EXPIRATION } from 'src/common/constants';
 import { JwtAuthGuard } from './auth.guard';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @ApiOperation({
+    summary: 'Iniciar sesión',
+    description: 'Autentica al usuario y establece la cookie de autenticación.',
+  })
+  @ApiResponse({ status: 200, description: 'Inicio de sesión exitoso.' })
+  @ApiResponse({ status: 500, description: 'Error interno del servidor.' })
   @Post('/login')
   async login(
     @Res() response: Response,
@@ -51,7 +60,14 @@ export class AuthController {
       });
     }
   }
+
   @Post('/register')
+  @ApiOperation({
+    summary: 'Registrar usuario',
+    description: 'Registra un nuevo usuario en el sistema.',
+  })
+  @ApiResponse({ status: 200, description: 'Usuario registrado exitosamente.' })
+  @ApiResponse({ status: 500, description: 'Error interno del servidor.' })
   async register(
     @Res() response: Response,
     @Body() registerDto: RegisterUsersDto,
@@ -73,6 +89,11 @@ export class AuthController {
   }
 
   @Post('/logout')
+  @ApiOperation({
+    summary: 'Cerrar sesión',
+    description: 'Elimina la cookie de autenticación para cerrar la sesión.',
+  })
+  @ApiResponse({ status: 200, description: 'Sesión cerrada exitosamente.' })
   async logout(@Res() response: Response) {
     response.clearCookie(AUTH_COOKIE);
     return response.status(200).json({
@@ -82,6 +103,14 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/verify')
+  @ApiOperation({
+    summary: 'Verificar autenticación',
+    description: 'Retorna los datos del usuario autenticado.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario autenticado correctamente.',
+  })
   async verify(@Req() request) {
     return request.user;
   }
