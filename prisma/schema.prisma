@@ -11,14 +11,14 @@ model User {
   user_id            Int          @id @default(autoincrement())
   name               String       @db.VarChar(100)
   email              String       @unique @db.VarChar(45)
-  phone_number       String?       @unique
+  phone_number       String       @unique
   role               String       @default("user")
   verification_state Boolean      @default(false)
   password           String?       @db.VarChar(100)
   profile_picture    String?
   activities         Activity[]
   reputations        Reputation[]
-  created_at         DateTime     @default(now())
+  created_at         DateTime     @default(now()) @map("registration_date")
 
   @@map("usuario")
 }
