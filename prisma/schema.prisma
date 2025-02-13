@@ -14,7 +14,7 @@ model User {
   phone_number       String?       @unique
   role               String       @default("user")
   verification_state Boolean      @default(false)
-  password           String       @db.VarChar(100)
+  password           String?       @db.VarChar(100)
   profile_picture    String?
   activities         Activity[]
   reputations        Reputation[]

@@ -8,10 +8,19 @@ import { PrismaService } from 'src/prisma.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersService } from '../users/users.service';
 import { ConfigModule } from '@nestjs/config';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { GithubStrategy } from './strategies/github.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, PrismaService, JwtStrategy, UsersService],
+  providers: [
+    AuthService,
+    PrismaService,
+    JwtStrategy,
+    UsersService,
+    GoogleStrategy,
+    GithubStrategy,
+  ],
   imports: [
     UsersModule,
     PassportModule,
