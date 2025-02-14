@@ -8,6 +8,8 @@ import { ProductImagesModule } from './product-images/product-images.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PaymentsModule } from './payments/payments.module';
+import { ChatModule } from './chat/chat.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { PaymentsModule } from './payments/payments.module';
     UsersModule,
     AuthModule,
     PaymentsModule,
+    ChatModule,
+    MessageModule,
   ],
   controllers: [],
   providers: [],

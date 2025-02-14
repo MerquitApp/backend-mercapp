@@ -1,10 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import cookieParser from 'cookie-parser';
 import { Socket } from 'socket.io';
+import { AuthService } from 'src/auth/auth.service';
+import { AUTH_COOKIE } from 'src/common/constants';
+import { parseCookies } from 'src/common/helpers/parseCookies';
 
 @Injectable()
 export class ChatWsService {
-  //! THIS IS A TEMPORARY SOLUTION, WILL BE REPLACED WITH A REAL SOLUTION LATER
   private calls = {};
+
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService,
+  ) {}
 
   handleMessage(client: any, message: string) {
     return client.broadcast.emit('message', message);
@@ -44,5 +53,29 @@ export class ChatWsService {
 
   handleJoinCall(client: Socket, callId: string) {
     client.emit('join-call', callId, this.calls[callId].offer);
+  }
+
+  async getUserIdAuth(client: Socket) {
+    const cookies = parseCookies(client.handshake.headers.cookie);
+    const authCookie = cookies?.[AUTH_COOKIE];
+
+    if (!authCookie) {
+      client.disconnect();
+      return;
+    }
+
+    const token = decodeURIComponent(authCookie).split('s:')[1];
+
+    if (!token) {
+      client.disconnect();
+      return;
+    }
+
+    try {
+      return await this.authService.verify(token);
+    } catch (err) {
+      client.disconnect();
+      console.log(err);
+    }
   }
 }

@@ -38,6 +38,21 @@ export class AuthService {
     };
   }
 
+  async verify(token: string): Promise<any> {
+    const { user_id } = this.jwtService.verify(token);
+    const user = await this.usersService.findById(user_id);
+    console.log(token);
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+
+    return {
+      user_id,
+      name: user.name,
+      email: user.email,
+    };
+  }
+
   async getUserToken(user: User): Promise<any> {
     return {
       token: this.jwtService.sign({ user_id: user.user_id }),

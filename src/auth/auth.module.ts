@@ -21,6 +21,7 @@ import { GithubStrategy } from './strategies/github.strategy';
     GoogleStrategy,
     GithubStrategy,
   ],
+  exports: [AuthService],
   imports: [
     UsersModule,
     PassportModule,
