@@ -9,6 +9,7 @@ import { Users } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { createOauthUserDto } from './dto/create-user-oauth.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -88,5 +89,20 @@ export class UsersService {
         user_id,
       },
     });
+  }
+
+  async update(user_id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.prisma.user.update({
+      where: {
+        user_id,
+      },
+      data: {
+        name: updateUserDto.name,
+        email: updateUserDto.email,
+        phone_number: updateUserDto.phoneNumber,
+      },
+    });
+
+    return user;
   }
 }

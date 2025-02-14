@@ -118,7 +118,7 @@ export class AuthController {
     const jwt = await this.authService.getUserToken(req.user);
     this.setAuthCookie(res, jwt.token);
 
-    return res.redirect(this.configService.get('API_URL'));
+    return res.redirect(this.configService.get('FRONTEND_URL'));
   }
 
   @UseGuards(AuthGuard('github'))
@@ -133,7 +133,7 @@ export class AuthController {
     const jwt = await this.authService.getUserToken(req.user);
     this.setAuthCookie(res, jwt.token);
 
-    return res.redirect(this.configService.get('API_URL'));
+    return res.redirect(this.configService.get('FRONTEND_URL'));
   }
 
   private setAuthCookie(response: Response, token: string) {
