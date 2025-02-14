@@ -1,26 +1,76 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from 'src/prisma.service';
+
+type Message = Prisma.MessageGetPayload<{
+  include: {
+    chat: true;
+  };
+}> & {
+  chat: {
+    id: number;
+    createdAt: Date;
+  };
+};
 
 @Injectable()
 export class MessageService {
-  create(createMessageDto: CreateMessageDto) {
-    return 'This action adds a new message';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async createMessage(createMessageDto: CreateMessageDto): Promise<Message> {
+    const createMessage = await this.prisma.message.create({
+      data: {
+        content: createMessageDto.content,
+        chat: {
+          connect: { id: createMessageDto.chat_id },
+        },
+      },
+      include: {
+        chat: true,
+      },
+    });
+
+    return createMessage;
   }
 
-  findAll() {
-    return `This action returns all message`;
+  async getMessageByChatId(chat_id: number): Promise<Message[]> {
+    return await this.prisma.message.findMany({
+      where: {
+        chatId: chat_id,
+      },
+      include: {
+        chat: true,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} message`;
+  async deleteMessage(id: number): Promise<Message> {
+    return await this.prisma.message.delete({
+      where: {
+        id,
+      },
+      include: {
+        chat: true,
+      },
+    });
   }
 
-  update(id: number, updateMessageDto: UpdateMessageDto) {
-    return `This action updates a #${id} message`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} message`;
+  async updateMessage(
+    id: number,
+    updateMessageDto: UpdateMessageDto,
+  ): Promise<Message> {
+    return await this.prisma.message.update({
+      where: {
+        id,
+      },
+      data: {
+        content: updateMessageDto.content,
+      },
+      include: {
+        chat: true,
+      },
+    });
   }
 }
