@@ -41,7 +41,7 @@ export class AuthService {
   async verify(token: string): Promise<any> {
     const { user_id } = this.jwtService.verify(token);
     const user = await this.usersService.findById(user_id);
-    console.log(token);
+
     if (!user) {
       throw new NotFoundException('user not found');
     }

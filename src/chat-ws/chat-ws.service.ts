@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import cookieParser from 'cookie-parser';
+import * as cookieParser from 'cookie-parser';
 import { Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { AUTH_COOKIE } from 'src/common/constants';
@@ -64,7 +64,10 @@ export class ChatWsService {
       return;
     }
 
-    const token = decodeURIComponent(authCookie).split('s:')[1];
+    const token = cookieParser.signedCookie(
+      decodeURIComponent(authCookie),
+      this.configService.get('COOKIE_SECRET'),
+    );
 
     if (!token) {
       client.disconnect();

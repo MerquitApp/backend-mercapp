@@ -6,7 +6,7 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import { ChatWsService } from './chat-ws.service';
-import type { Server, Socket } from 'socket.io';
+import type { Socket } from 'socket.io';
 
 @WebSocketGateway()
 export class ChatWsGateway implements OnGatewayConnection {
