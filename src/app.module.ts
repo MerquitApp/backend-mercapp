@@ -19,6 +19,7 @@ import { PaymentsModule } from './payments/payments.module';
       apiKey: process.env.RESEND_API_KEY,
     }),
     JwtModule.register({
+      global: true,
       secret: process.env.JWT_SECRET,
       signOptions: {
         expiresIn: process.env.JWT_EXPIRES_IN,

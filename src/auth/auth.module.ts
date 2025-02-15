@@ -9,7 +9,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { ConfigModule } from '@nestjs/config';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GithubStrategy } from './strategies/github.strategy';
-import { UsersService } from 'src/users/users.service';
 
 @Module({
   controllers: [AuthController],
@@ -17,10 +16,9 @@ import { UsersService } from 'src/users/users.service';
     AuthService,
     PrismaService,
     JwtStrategy,
-    UsersService,
     GoogleStrategy,
     GithubStrategy,
   ],
-  imports: [PassportModule, ConfigModule, JwtModule, UsersModule],
+  imports: [PassportModule, ConfigModule, UsersModule],
 })
 export class AuthModule {}

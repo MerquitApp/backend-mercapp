@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ResendService } from 'nestjs-resend';
-import { RESEND_EMAIL } from 'src/common/constants';
 import { sendAccountVerificationEmailTemplate } from './email-templates/sendAccountVerification.template';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class EmailService {
-  constructor(private readonly resendService: ResendService) {}
+  constructor(
+    private readonly resendService: ResendService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  private readonly RESEND_EMAIL = this.configService.get('RESEND_EMAIL');
 
   async sendAccoutVerificationEmail(
     email: string,
@@ -15,7 +20,7 @@ export class EmailService {
     }: { userName: string; confirmationLink: string },
   ) {
     await this.resendService.send({
-      from: RESEND_EMAIL,
+      from: this.RESEND_EMAIL,
       to: email,
       subject: 'Verifica tu cuenta',
       html: sendAccountVerificationEmailTemplate({
@@ -27,7 +32,7 @@ export class EmailService {
 
   async sendResetPasswordEmail(email: string) {
     await this.resendService.send({
-      from: RESEND_EMAIL,
+      from: this.RESEND_EMAIL,
       to: email,
       subject: 'Restablecer contraseña',
       html: 'TODO',
@@ -36,7 +41,7 @@ export class EmailService {
 
   async sendOrderConfirmationEmail(email: string) {
     await this.resendService.send({
-      from: RESEND_EMAIL,
+      from: this.RESEND_EMAIL,
       to: email,
       subject: 'Confirmación de pedido',
       html: 'TODO',

@@ -21,7 +21,7 @@ export const sendAccountVerificationEmailTemplate = ({
                 <table width="600" style="background-color: #ffffff; padding: 20px; border-radius: 8px; text-align: center;">
                     <tr>
                         <td style="padding: 20px 0;">
-                            <img src="/logo-mercapp.png" alt="MercApp Logo" width="100" style="display: block; margin: 0 auto;">
+                            <img src="https://merc-app.netlify.app/logo-mercapp.png" alt="MercApp Logo" width="100" style="display: block; margin: 0 auto;">
                         </td>
                     </tr>
                     <tr>

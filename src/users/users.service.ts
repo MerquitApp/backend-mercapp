@@ -131,6 +131,15 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    await this.prisma.user.update({
+      where: {
+        user_id,
+      },
+      data: {
+        verification_state: true,
+      },
+    });
   }
 
   async update(user_id: number, updateUserDto: UpdateUserDto) {
