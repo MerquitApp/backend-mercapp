@@ -6,7 +6,9 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
@@ -20,6 +22,7 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('products')
 @Controller('products')
@@ -47,6 +50,7 @@ export class ProductsController {
   }
 
   @Post()
+  @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'cover_image', maxCount: 1 },
@@ -81,7 +85,11 @@ export class ProductsController {
       cover_image?: Express.Multer.File[];
       images?: Express.Multer.File[];
     },
+
+    @Req() req,
   ) {
+    const user = req.user;
+
     if (files.cover_image) {
       createProductDto.cover_image = files.cover_image[0];
     }
@@ -90,9 +98,10 @@ export class ProductsController {
       createProductDto.images = files.images;
     }
 
-    return this.productsService.createProduct(createProductDto);
+    return this.productsService.createProduct(createProductDto, user);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -128,12 +137,15 @@ export class ProductsController {
   updateProduct(
     @Param('id') id: number,
     @Body() updateProductDto: UpdateProductDto,
+    @Req() req,
     @UploadedFiles()
     files: {
       cover_image?: Express.Multer.File[];
       images?: Express.Multer.File[];
     },
   ) {
+    const user = req.user;
+
     if (files.cover_image) {
       updateProductDto.cover_image = files.cover_image[0];
     }
@@ -142,9 +154,10 @@ export class ProductsController {
       updateProductDto.images = files.images;
     }
 
-    return this.productsService.updateProduct(id, updateProductDto);
+    return this.productsService.updateProduct(id, updateProductDto, user);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar un producto',
@@ -152,7 +165,9 @@ export class ProductsController {
   })
   @ApiResponse({ status: 200, description: 'Producto eliminado exitosamente.' })
   @ApiResponse({ status: 404, description: 'Producto no encontrado.' })
-  deleteProduct(@Param('id') id: number) {
-    return this.productsService.deleteProduct(id);
+  deleteProduct(@Param('id') id: number, @Req() req) {
+    const user = req.user;
+
+    return this.productsService.deleteProduct(id, user);
   }
 }

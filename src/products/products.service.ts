@@ -1,10 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/common/db/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ObjectStorageService } from 'src/object-storage/object-storage.service';
 import { CategoriesService } from 'src/categories/categories.service';
-import { Prisma, Product } from '@prisma/client';
+import { Prisma, Product, User } from '@prisma/client';
 import { ProductImagesService } from 'src/product-images/product-images.service';
 
 type ProductWithRelations = Prisma.ProductGetPayload<{
@@ -12,6 +16,7 @@ type ProductWithRelations = Prisma.ProductGetPayload<{
     categories: true;
     images: true;
     cover_image: true;
+    user: true;
   };
 }>;
 
@@ -33,6 +38,7 @@ export class ProductsService {
         categories: true,
         images: true,
         cover_image: true,
+        user: true,
       },
     });
   }
@@ -43,12 +49,14 @@ export class ProductsService {
         categories: true,
         images: true,
         cover_image: true,
+        user: true,
       },
     });
   }
 
   async createProduct(
     createProductDto: CreateProductDto,
+    user: User,
   ): Promise<ProductWithRelations> {
     const cover_img_url = await this.objectStorageService.uploadFile(
       createProductDto.cover_image,
@@ -80,6 +88,11 @@ export class ProductsService {
 
     return await this.prisma.product.create({
       data: {
+        user: {
+          connect: {
+            user_id: user.user_id,
+          },
+        },
         name: createProductDto.name,
         description: createProductDto.description,
         price: +createProductDto.price,
@@ -101,6 +114,7 @@ export class ProductsService {
       include: {
         categories: true,
         images: true,
+        user: true,
         cover_image: true,
       },
     });
@@ -109,6 +123,7 @@ export class ProductsService {
   async updateProduct(
     id: number,
     updateProductDto: UpdateProductDto,
+    user: User,
   ): Promise<ProductWithRelations> {
     const product = await this.getProductById(id);
     const isUpdatingCoverImage = updateProductDto.cover_image;
@@ -117,6 +132,12 @@ export class ProductsService {
     const previousImages = product.images;
     let updatedCoverImage = null;
     let updatedImages = null;
+
+    if (user.user_id !== product.user.user_id) {
+      throw new ForbiddenException(
+        'No tienes permisos para editar este producto',
+      );
+    }
 
     if (isUpdatingCoverImage) {
       this.productImageService.deleteProductImage(previusCoverImage.id);
@@ -183,13 +204,20 @@ export class ProductsService {
         cover_image: true,
         images: true,
         categories: true,
+        user: true,
       },
     });
   }
 
-  async deleteProduct(id: number): Promise<Product> {
+  async deleteProduct(id: number, user: User): Promise<Product> {
     // Delete images first
     const product = await this.getProductById(id);
+
+    if (user.user_id !== product.user.user_id) {
+      throw new ForbiddenException(
+        'No tienes permisos para eliminar este producto',
+      );
+    }
 
     if (!product) {
       throw new NotFoundException('Product not found');
