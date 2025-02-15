@@ -1,4 +1,6 @@
-interface EmailTemplate {
+import { MERCAPP_LOGO_URL } from '../constants';
+
+export interface AccountVerificationEmailTemplate {
   userName: string;
   confirmationLink: string;
 }
@@ -6,22 +8,14 @@ interface EmailTemplate {
 export const sendAccountVerificationEmailTemplate = ({
   userName,
   confirmationLink,
-}: EmailTemplate) => `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmación de Cuenta - MercApp</title>
-</head>
-<body style="background-color: #f4f4f4; font-family: Arial, sans-serif; padding: 20px;">
+}: AccountVerificationEmailTemplate) => `
     <table width="100%" align="center" style="background-color: #f4f4f4; padding: 20px; font-family: Arial, sans-serif;">
         <tr>
             <td align="center">
                 <table width="600" style="background-color: #ffffff; padding: 20px; border-radius: 8px; text-align: center;">
                     <tr>
                         <td style="padding: 20px 0;">
-                            <img src="https://merc-app.netlify.app/logo-mercapp.png" alt="MercApp Logo" width="100" style="display: block; margin: 0 auto;">
+                            <img src="${MERCAPP_LOGO_URL}" alt="MercApp Logo" width="100" style="display: block; margin: 0 auto;">
                         </td>
                     </tr>
                     <tr>
@@ -55,5 +49,4 @@ export const sendAccountVerificationEmailTemplate = ({
             </td>
         </tr>
     </table>
-</body>
-</html>`;
+`;

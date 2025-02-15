@@ -46,7 +46,7 @@ export class UsersService {
       },
     });
 
-    const token = this.generateAccountVerificationToken(user);
+    const token = this.generateAccountToken(user);
 
     await this.emailService.sendAccoutVerificationEmail(data.email, {
       userName: data.name,
@@ -112,7 +112,7 @@ export class UsersService {
     });
   }
 
-  generateAccountVerificationToken(user: User) {
+  generateAccountToken(user: User) {
     return this.jwtService.sign({
       user_id: user.user_id,
       email: user.email,
@@ -151,6 +151,21 @@ export class UsersService {
         name: updateUserDto.name,
         email: updateUserDto.email,
         phone_number: updateUserDto.phoneNumber,
+      },
+    });
+
+    return user;
+  }
+
+  async passwordReset(user_id: number, newPassword: string) {
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+    const user = await this.prisma.user.update({
+      where: {
+        user_id,
+      },
+      data: {
+        password: hashedPassword,
       },
     });
 

@@ -10,12 +10,18 @@ import { UsersService } from '../users/users.service';
 import { RegisterUsersDto } from './dto/register-user.dto';
 import { VerifyAccountDto } from './dto/verify-account.dto';
 import { User } from '@prisma/client';
+import { PasswordResetDto } from './dto/password-reset.dto';
+import { PasswordResetRequestDto } from './dto/password-reset-request.dto';
+import { EmailService } from 'src/email/email.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private readonly emailService: EmailService,
+    private readonly configService: ConfigService,
   ) {}
 
   async login(loginDto: LoginDto): Promise<any> {
@@ -34,14 +40,14 @@ export class AuthService {
     }
 
     return {
-      token: this.jwtService.sign({ user_id: user.user_id }),
+      token: this.usersService.generateAccountToken(user),
       user,
     };
   }
 
   async getUserToken(user: User): Promise<any> {
     return {
-      token: this.jwtService.sign({ user_id: user.user_id }),
+      token: this.usersService.generateAccountToken(user),
     };
   }
 
@@ -61,5 +67,37 @@ export class AuthService {
 
   async verifyAccount(verifyAccountDto: VerifyAccountDto) {
     return this.usersService.verifyAccount(verifyAccountDto.token);
+  }
+
+  async passwordResetRequest(passwordResetRequestDto: PasswordResetRequestDto) {
+    const user = await this.usersService.findByEmail(
+      passwordResetRequestDto.email,
+    );
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const token = this.usersService.generateAccountToken(user);
+
+    await this.emailService.sendResetPasswordEmail(user.email, {
+      userName: user.name,
+      resetLink: `${this.configService.get(
+        'FRONTEND_URL',
+      )}/forgot-password/${token}`,
+    });
+  }
+
+  async passwordReset(passwordResetDto: PasswordResetDto) {
+    if (passwordResetDto.password !== passwordResetDto.confirmPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
+    const jwt = this.jwtService.verify(passwordResetDto.token);
+
+    return this.usersService.passwordReset(
+      jwt.user_id,
+      passwordResetDto.password,
+    );
   }
 }
