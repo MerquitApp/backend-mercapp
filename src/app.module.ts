@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 import { ResendModule } from 'nestjs-resend';
 import { JwtModule } from '@nestjs/jwt';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { JwtModule } from '@nestjs/jwt';
     UsersModule,
     AuthModule,
     EmailModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [],

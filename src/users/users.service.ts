@@ -14,6 +14,7 @@ import { EmailService } from 'src/email/email.service';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import { CreateOauthUserDto } from './dto/create-user-oauth.dto';
 
 @Injectable()
 export class UsersService {
@@ -41,6 +42,7 @@ export class UsersService {
         email: data.email,
         name: data.name,
         password: hashedPassword,
+        phone_number: data.phoneNumber,
       },
     });
 
@@ -54,6 +56,22 @@ export class UsersService {
     });
 
     return user;
+  }
+
+  async createOrFindOauthUser(data: CreateOauthUserDto): Promise<Users> {
+    const existing = await this.findByEmail(data.email);
+
+    if (existing) {
+      return existing;
+    }
+
+    return this.prisma.user.create({
+      data: {
+        email: data.email,
+        name: data.name,
+        profile_picture: data.profile_picture,
+      },
+    });
   }
 
   async findByEmail(email: string) {
@@ -86,14 +104,6 @@ export class UsersService {
     return user;
   }
 
-  update(user_id: number, updateUserDto: UpdateUserDto) {
-    // return `This action updates a #${id} user`;
-    throw new HttpException(
-      'Error updating user.',
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
-  }
-
   async remove(user_id: number) {
     await this.prisma.user.delete({
       where: {
@@ -121,6 +131,19 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+  }
+
+  async update(user_id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.prisma.user.update({
+      where: {
+        user_id,
+      },
+      data: {
+        name: updateUserDto.name,
+        email: updateUserDto.email,
+        phone_number: updateUserDto.phoneNumber,
+      },
+    });
 
     return user;
   }
