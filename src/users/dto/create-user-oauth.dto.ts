@@ -1,4 +1,10 @@
-import { IsAlpha, IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsAlpha,
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class createOauthUserDto {
   @IsAlpha('es-ES', {
@@ -12,4 +18,12 @@ export class createOauthUserDto {
 
   @IsString()
   profile_picture: string;
+
+  @IsString()
+  @IsOptional()
+  github_id?: string;
+
+  @IsString()
+  @IsOptional()
+  google_id?: string;
 }

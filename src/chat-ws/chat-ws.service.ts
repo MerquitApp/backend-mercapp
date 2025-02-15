@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 import { Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
+import { ChatService } from 'src/chat/chat.service';
 import { AUTH_COOKIE } from 'src/common/constants';
 import { parseCookies } from 'src/common/helpers/parseCookies';
 
@@ -13,6 +14,7 @@ export class ChatWsService {
   constructor(
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
+    private readonly chatService: ChatService,
   ) {}
 
   handleMessage(client: any, message: string) {
@@ -80,5 +82,9 @@ export class ChatWsService {
       client.disconnect();
       console.log(err);
     }
+  }
+
+  async connectUser(client: Socket, user: any) {
+    client.join([user.user_id]);
   }
 }

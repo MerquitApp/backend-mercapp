@@ -46,9 +46,7 @@ export class UsersService {
 
     return this.prisma.user.create({
       data: {
-        email: data.email,
-        name: data.name,
-        profile_picture: data.profile_picture,
+        ...data,
       },
     });
   }
@@ -73,6 +71,9 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: {
         user_id,
+      },
+      include: {
+        chats: true,
       },
     });
 

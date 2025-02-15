@@ -35,7 +35,7 @@ export class MessageService {
     return createMessage;
   }
 
-  async getMessageByChatId(chat_id: number): Promise<Message[]> {
+  async getMessagesByChatId(chat_id: number): Promise<Message[]> {
     return await this.prisma.message.findMany({
       where: {
         chatId: chat_id,
@@ -46,7 +46,7 @@ export class MessageService {
     });
   }
 
-  async deleteMessage(id: number): Promise<Message> {
+  async deleteMessageById(id: number): Promise<Message> {
     return await this.prisma.message.delete({
       where: {
         id,

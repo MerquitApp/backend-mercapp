@@ -14,6 +14,7 @@ export class ChatWsGateway implements OnGatewayConnection {
 
   async handleConnection(client: Socket) {
     const user = await this.chatWsService.getUserIdAuth(client);
+    await this.chatWsService.connectUser(client, user);
   }
 
   @SubscribeMessage('message')

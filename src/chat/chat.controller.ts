@@ -1,42 +1,28 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
+  NotFoundException,
   Param,
-  Delete,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { CreateChatDto } from './dto/create-chat.dto';
-import { UpdateChatDto } from './dto/update-chat.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  @Post()
-  create(@Body() createChatDto: CreateChatDto) {
-    return this.chatService.createChat(createChatDto);
+  @Get(':id')
+  async findOne(@Param('id') id: string, @Req() req) {
+    const user = req.user;
+    const chat = await this.chatService.findById(+id);
+
+    if (chat.users.some((u) => u.user_id === user.user_id)) {
+      return chat;
+    }
+
+    throw new NotFoundException("Chat doesn't exist");
   }
-
-  // @Get()
-  // findAll() {
-  //   return this.chatService.findAll();
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.chatService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateChatDto: UpdateChatDto) {
-  //   return this.chatService.update(+id, updateChatDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.chatService.remove(+id);
-  // }
 }

@@ -19,6 +19,8 @@ model User {
   activities         Activity[]
   reputations        Reputation[]
   chats              Chat[]
+  github_id          String?
+  google_id          String?
   created_at         DateTime     @default(now()) @map("registration_date")
 
   @@map("usuario")
