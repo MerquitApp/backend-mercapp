@@ -1,6 +1,6 @@
 import { IsAlpha, IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
-export class createOauthUserDto {
+export class CreateOauthUserDto {
   @IsAlpha('es-ES', {
     message: 'El nombre no puede contener caracteres especiales',
   })

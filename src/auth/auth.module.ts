@@ -4,12 +4,12 @@ import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from 'src/common/db/prisma.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { UsersService } from '../users/users.service';
 import { ConfigModule } from '@nestjs/config';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GithubStrategy } from './strategies/github.strategy';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   controllers: [AuthController],
@@ -17,19 +17,14 @@ import { GithubStrategy } from './strategies/github.strategy';
     AuthService,
     PrismaService,
     JwtStrategy,
-    UsersService,
     GoogleStrategy,
     GithubStrategy,
   ],
   imports: [
-    UsersModule,
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: {
-        expiresIn: process.env.JWT_EXPIRES_IN,
-      },
-    }),
+    ConfigModule,
+    UsersModule,
+    EmailModule,
     ConfigModule,
   ],
 })

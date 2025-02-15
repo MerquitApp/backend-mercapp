@@ -15,9 +15,12 @@ import { Response } from 'express';
 import { RegisterUsersDto } from './dto/register-user.dto';
 import { AUTH_COOKIE, AUTH_COOKIE_EXPIRATION } from 'src/common/constants';
 import { JwtAuthGuard } from './auth.guard';
+import { VerifyAccountDto } from './dto/verify-account.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { PasswordResetDto } from './dto/password-reset.dto';
+import { PasswordResetRequestDto } from './dto/password-reset-request.dto';
 
 @ApiTags('auth')
 @Controller('/auth')
@@ -104,6 +107,23 @@ export class AuthController {
   })
   async verify(@Req() request) {
     return request.user;
+  }
+
+  @Post('/verify-account')
+  async verifyAccount(@Body() verifyAccountDto: VerifyAccountDto) {
+    return this.authService.verifyAccount(verifyAccountDto);
+  }
+
+  @Post('/password-reset-request')
+  async passwordResetRequest(
+    @Body() passwordResetDto: PasswordResetRequestDto,
+  ) {
+    return this.authService.passwordResetRequest(passwordResetDto);
+  }
+
+  @Post('/password-reset')
+  async passwordReset(@Body() passwordResetDto: PasswordResetDto) {
+    return this.authService.passwordReset(passwordResetDto);
   }
 
   @UseGuards(AuthGuard('google'))
