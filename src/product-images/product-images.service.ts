@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ObjectStorageService } from 'src/object-storage/object-storage.service';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from 'src/common/db/prisma.service';
 
 @Injectable()
 export class ProductImagesService {

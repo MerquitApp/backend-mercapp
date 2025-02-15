@@ -14,6 +14,7 @@ import { Response } from 'express';
 import { RegisterUsersDto } from './dto/register-user.dto';
 import { AUTH_COOKIE, AUTH_COOKIE_EXPIRATION } from 'src/common/constants';
 import { JwtAuthGuard } from './auth.guard';
+import { VerifyAccountDto } from './dto/verify-account.dto';
 
 @Controller('/auth')
 export class AuthController {
@@ -76,5 +77,10 @@ export class AuthController {
   @Get('/verify')
   async verify(@Req() request) {
     return request.user;
+  }
+
+  @Post('/verify-account')
+  async verifyAccount(@Body() verifyAccountDto: VerifyAccountDto) {
+    return this.authService.verifyAccount(verifyAccountDto);
   }
 }

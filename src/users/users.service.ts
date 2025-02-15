@@ -3,16 +3,26 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from 'src/common/db/prisma.service';
 import { Users } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { EmailService } from 'src/email/email.service';
+import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async getAllUser(): Promise<Users[]> {
     return this.prisma.user.findMany();
@@ -26,17 +36,24 @@ export class UsersService {
       throw new ConflictException('username already exists');
     }
 
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         email: data.email,
         name: data.name,
         password: hashedPassword,
       },
     });
-  }
 
-  findAll() {
-    return `This action returns all users`;
+    const token = this.generateAccountVerificationToken(user);
+
+    await this.emailService.sendAccoutVerificationEmail(data.email, {
+      userName: data.name,
+      confirmationLink: `${this.configService.get(
+        'FRONTEND_URL',
+      )}/verify-account/${token}`,
+    });
+
+    return user;
   }
 
   async findByEmail(email: string) {
@@ -83,5 +100,28 @@ export class UsersService {
         user_id,
       },
     });
+  }
+
+  generateAccountVerificationToken(user: User) {
+    return this.jwtService.sign({
+      user_id: user.user_id,
+      email: user.email,
+    });
+  }
+
+  async verifyAccount(token: string) {
+    const { user_id, email } = this.jwtService.verify(token);
+    const user = await this.prisma.user.findUnique({
+      where: {
+        user_id,
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 }

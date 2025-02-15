@@ -4,11 +4,12 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login-user.dto';
 import { UsersService } from '../users/users.service';
 import { RegisterUsersDto } from './dto/register-user.dto';
+import { VerifyAccountDto } from './dto/verify-account.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -17,7 +18,7 @@ export class AuthService {
 
     const user = await this.usersService.findByEmail(email);
 
-    if (!user) {
+    if (!user || !user.verification_state) {
       throw new NotFoundException('user not found');
     }
 
@@ -38,5 +39,9 @@ export class AuthService {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  async verifyAccount(verifyAccountDto: VerifyAccountDto) {
+    return this.usersService.verifyAccount(verifyAccountDto.token);
   }
 }
