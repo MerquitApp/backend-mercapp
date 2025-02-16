@@ -8,6 +8,7 @@ import { ProductImagesModule } from './product-images/product-images.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PaymentsModule } from './payments/payments.module';
+import { ReputationModule } from './reputation/reputation.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PaymentsModule } from './payments/payments.module';
     UsersModule,
     AuthModule,
     PaymentsModule,
+    ReputationModule,
   ],
   controllers: [],
   providers: [],
