@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UploadedFiles,
   UseGuards,
@@ -24,6 +25,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { FilterProductsDto } from './dto/filter-products.dto';
 
 @ApiTags('products')
 @Controller('products')
@@ -35,8 +37,10 @@ export class ProductsController {
     summary: 'Obtener todos productos',
     description: 'Obtiene una lista de todos los productos.',
   })
-  getAllProduct() {
-    return this.productsService.getAllProduct();
+  getAllProduct(@Query() query: FilterProductsDto) {
+    return this.productsService.getAllProduct({
+      ...query,
+    });
   }
 
   @Get(':id')
@@ -104,11 +108,7 @@ export class ProductsController {
       user,
     );
 
-    if (product) {
-      return this.productsService.createProduct(createProductDto, user);
-    } else {
-      throw new InternalServerErrorException('Error al crear producto');
-    }
+    return product;
   }
 
   @UseGuards(AuthGuard('jwt'))

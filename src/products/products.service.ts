@@ -10,6 +10,7 @@ import { ObjectStorageService } from 'src/object-storage/object-storage.service'
 import { CategoriesService } from 'src/categories/categories.service';
 import { Prisma, Product, User } from '@prisma/client';
 import { ProductImagesService } from 'src/product-images/product-images.service';
+import { FilterProductsDto } from './dto/filter-products.dto';
 
 type ProductWithRelations = Prisma.ProductGetPayload<{
   include: {
@@ -43,15 +44,33 @@ export class ProductsService {
     });
   }
 
-  async getAllProduct(): Promise<ProductWithRelations[]> {
-    return await this.prisma.product.findMany({
-      include: {
-        categories: true,
-        images: true,
-        cover_image: true,
-        user: true,
-      },
-    });
+  async getAllProduct(
+    filterProductsDto: FilterProductsDto,
+  ): Promise<ProductWithRelations[]> {
+    try {
+      return await this.prisma.product.findMany({
+        include: {
+          categories: true,
+          images: true,
+          cover_image: true,
+          user: true,
+        },
+        take: filterProductsDto.limit,
+        skip: filterProductsDto.offset,
+        where: {
+          name: {
+            contains: filterProductsDto.q,
+            mode: 'insensitive',
+          },
+          user: {
+            user_id: filterProductsDto.user_id,
+          },
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+    return [];
   }
 
   async createProduct(
