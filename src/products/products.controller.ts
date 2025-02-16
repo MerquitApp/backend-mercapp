@@ -3,10 +3,14 @@ import {
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
   Param,
   Post,
   Put,
+  Query,
+  Req,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
@@ -20,6 +24,8 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import { FilterProductsDto } from './dto/filter-products.dto';
 
 @ApiTags('products')
 @Controller('products')
@@ -31,8 +37,10 @@ export class ProductsController {
     summary: 'Obtener todos productos',
     description: 'Obtiene una lista de todos los productos.',
   })
-  getAllProduct() {
-    return this.productsService.getAllProduct();
+  getAllProduct(@Query() query: FilterProductsDto) {
+    return this.productsService.getAllProduct({
+      ...query,
+    });
   }
 
   @Get(':id')
@@ -47,6 +55,7 @@ export class ProductsController {
   }
 
   @Post()
+  @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'cover_image', maxCount: 1 },
@@ -74,14 +83,18 @@ export class ProductsController {
     },
   })
   @ApiResponse({ status: 201, description: 'Producto creado exitosamente.' })
-  createProduct(
+  async createProduct(
     @Body() createProductDto: CreateProductDto,
     @UploadedFiles()
     files: {
       cover_image?: Express.Multer.File[];
       images?: Express.Multer.File[];
     },
+
+    @Req() req,
   ) {
+    const user = req.user;
+
     if (files.cover_image) {
       createProductDto.cover_image = files.cover_image[0];
     }
@@ -90,9 +103,15 @@ export class ProductsController {
       createProductDto.images = files.images;
     }
 
-    return this.productsService.createProduct(createProductDto);
+    const product = await this.productsService.createProduct(
+      createProductDto,
+      user,
+    );
+
+    return product;
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -128,12 +147,15 @@ export class ProductsController {
   updateProduct(
     @Param('id') id: number,
     @Body() updateProductDto: UpdateProductDto,
+    @Req() req,
     @UploadedFiles()
     files: {
       cover_image?: Express.Multer.File[];
       images?: Express.Multer.File[];
     },
   ) {
+    const user = req.user;
+
     if (files.cover_image) {
       updateProductDto.cover_image = files.cover_image[0];
     }
@@ -142,9 +164,10 @@ export class ProductsController {
       updateProductDto.images = files.images;
     }
 
-    return this.productsService.updateProduct(id, updateProductDto);
+    return this.productsService.updateProduct(id, updateProductDto, user);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar un producto',
@@ -152,7 +175,9 @@ export class ProductsController {
   })
   @ApiResponse({ status: 200, description: 'Producto eliminado exitosamente.' })
   @ApiResponse({ status: 404, description: 'Producto no encontrado.' })
-  deleteProduct(@Param('id') id: number) {
-    return this.productsService.deleteProduct(id);
+  deleteProduct(@Param('id') id: number, @Req() req) {
+    const user = req.user;
+
+    return this.productsService.deleteProduct(id, user);
   }
 }

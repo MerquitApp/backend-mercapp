@@ -58,6 +58,11 @@ async function main() {
         description: faker.commerce.productDescription(),
         price: faker.number.int({ min: 10, max: 1000 }),
         tags: [faker.commerce.department(), faker.commerce.department()],
+        user: {
+          connect: {
+            user_id: faker.number.int({ min: 1, max: 10 }),
+          },
+        },
       },
     });
 

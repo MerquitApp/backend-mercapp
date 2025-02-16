@@ -17,6 +17,7 @@ model User {
   password           String?       @db.VarChar(100)
   profile_picture    String?
   activities         Activity[]
+  products           Product[]
   reputations        Reputation[]
   created_at         DateTime     @default(now()) @map("registration_date")
 
@@ -74,6 +75,8 @@ model Product {
   price       Int
   tags        String[]
   categories  ProductCategoriesOnProduct[]
+  userId      Int
+  user        User                         @relation(fields: [userId], references: [user_id])
   cover_image ProductImage?                @relation("CoverImage")
   images      ProductImage[]               @relation("ProductImages")
 }
