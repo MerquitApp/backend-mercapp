@@ -57,67 +57,73 @@ export class ProductsService {
   async createProduct(
     createProductDto: CreateProductDto,
     user: User,
-  ): Promise<ProductWithRelations> {
-    const cover_img_url = await this.objectStorageService.uploadFile(
-      createProductDto.cover_image,
-    );
-
-    let images_url = [];
-
-    if (createProductDto.images && createProductDto.images.length > 0) {
-      images_url = await Promise.all(
-        createProductDto.images.map((image) =>
-          this.objectStorageService.uploadFile(image),
-        ),
+  ): Promise<ProductWithRelations | null> {
+    try {
+      const cover_img_url = await this.objectStorageService.uploadFile(
+        createProductDto.cover_image,
       );
-    }
 
-    const categories_connection = [];
+      let images_url = [];
 
-    if (createProductDto.categories) {
-      for (const category of createProductDto.categories) {
-        const categoryObj = await this.categoriesService.getCategoryByName(
-          category,
+      if (createProductDto.images && createProductDto.images.length > 0) {
+        images_url = await Promise.all(
+          createProductDto.images.map((image) =>
+            this.objectStorageService.uploadFile(image),
+          ),
         );
+      }
 
-        if (categoryObj) {
-          categories_connection.push(categoryObj.id);
+      const categories_connection = [];
+
+      if (createProductDto.categories) {
+        for (const category of createProductDto.categories) {
+          const categoryObj = await this.categoriesService.getCategoryByName(
+            category,
+          );
+
+          if (categoryObj) {
+            categories_connection.push(categoryObj.id);
+          }
         }
       }
+
+      return await this.prisma.product.create({
+        data: {
+          user: {
+            connect: {
+              user_id: user.user_id,
+            },
+          },
+          name: createProductDto.name,
+          description: createProductDto.description,
+          price: +createProductDto.price,
+          tags: createProductDto.tags,
+          cover_image: {
+            create: {
+              image: cover_img_url,
+            },
+          },
+          categories: {
+            connect: categories_connection,
+          },
+          images: {
+            create: images_url.map((url) => ({
+              image: url,
+            })),
+          },
+        },
+        include: {
+          categories: true,
+          images: true,
+          user: true,
+          cover_image: true,
+        },
+      });
+    } catch (error) {
+      console.log(error);
     }
 
-    return await this.prisma.product.create({
-      data: {
-        user: {
-          connect: {
-            user_id: user.user_id,
-          },
-        },
-        name: createProductDto.name,
-        description: createProductDto.description,
-        price: +createProductDto.price,
-        tags: createProductDto.tags,
-        cover_image: {
-          create: {
-            image: cover_img_url,
-          },
-        },
-        categories: {
-          connect: categories_connection,
-        },
-        images: {
-          create: images_url.map((url) => ({
-            image: url,
-          })),
-        },
-      },
-      include: {
-        categories: true,
-        images: true,
-        user: true,
-        cover_image: true,
-      },
-    });
+    return null;
   }
 
   async updateProduct(

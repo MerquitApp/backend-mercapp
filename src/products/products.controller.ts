@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
   Param,
   Post,
   Put,
@@ -78,7 +79,7 @@ export class ProductsController {
     },
   })
   @ApiResponse({ status: 201, description: 'Producto creado exitosamente.' })
-  createProduct(
+  async createProduct(
     @Body() createProductDto: CreateProductDto,
     @UploadedFiles()
     files: {
@@ -98,7 +99,16 @@ export class ProductsController {
       createProductDto.images = files.images;
     }
 
-    return this.productsService.createProduct(createProductDto, user);
+    const product = await this.productsService.createProduct(
+      createProductDto,
+      user,
+    );
+
+    if (product) {
+      return this.productsService.createProduct(createProductDto, user);
+    } else {
+      throw new InternalServerErrorException('Error al crear producto');
+    }
   }
 
   @UseGuards(AuthGuard('jwt'))
