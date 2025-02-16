@@ -85,6 +85,9 @@ export class ChatWsService {
   }
 
   async connectUser(client: Socket, user: any) {
-    client.join([user.user_id]);
+    const chats = await this.chatService.getChatsByUserId(user.user_id);
+    const chatsIds = chats.map((chat) => chat.id);
+
+    client.join([user.user_id, ...chatsIds]);
   }
 }
