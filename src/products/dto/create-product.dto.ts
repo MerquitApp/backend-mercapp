@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
 import { IsImageFile } from '../validations/isImageFile';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class CreateProductDto {
   @ApiProperty({ description: 'Nombre del producto', example: 'Producto 1' })
@@ -34,6 +35,7 @@ export class CreateProductDto {
     type: String,
   })
   @IsOptional()
+  @Transform(({ value }) => JSON.parse(value))
   tags?: string[];
 
   @ApiProperty({
@@ -44,6 +46,7 @@ export class CreateProductDto {
     type: String,
   })
   @IsOptional()
+  @Transform(({ value }) => JSON.parse(value))
   categories?: string[];
 
   @ApiProperty({

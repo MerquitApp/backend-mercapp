@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { APP_FILTER } from '@nestjs/core';
 import { GeneralExceptionFilter } from 'src/filters/exceptions/general-exception/general-exception.filter';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from 'src/common/db/prisma.service';
+import { EmailModule } from 'src/email/email.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   controllers: [],
@@ -14,6 +16,7 @@ import { PrismaService } from 'src/prisma.service';
     },
     PrismaService,
   ],
+  imports: [EmailModule, ConfigModule],
   exports: [UsersService],
 })
 export class UsersModule {}

@@ -1,17 +1,23 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from 'src/common/db/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ObjectStorageService } from 'src/object-storage/object-storage.service';
 import { CategoriesService } from 'src/categories/categories.service';
-import { Prisma, Product } from '@prisma/client';
+import { Prisma, Product, User } from '@prisma/client';
 import { ProductImagesService } from 'src/product-images/product-images.service';
+import { FilterProductsDto } from './dto/filter-products.dto';
 
 type ProductWithRelations = Prisma.ProductGetPayload<{
   include: {
     categories: true;
     images: true;
     cover_image: true;
+    user: true;
   };
 }>;
 
@@ -33,82 +39,116 @@ export class ProductsService {
         categories: true,
         images: true,
         cover_image: true,
+        user: true,
       },
     });
   }
 
-  async getAllProduct(): Promise<ProductWithRelations[]> {
-    return await this.prisma.product.findMany({
-      include: {
-        categories: true,
-        images: true,
-        cover_image: true,
-      },
-    });
+  async getAllProduct(
+    filterProductsDto: FilterProductsDto,
+  ): Promise<ProductWithRelations[]> {
+    try {
+      return await this.prisma.product.findMany({
+        include: {
+          categories: true,
+          images: true,
+          cover_image: true,
+          user: true,
+        },
+        take: filterProductsDto.limit,
+        skip: filterProductsDto.offset,
+        where: {
+          name: {
+            contains: filterProductsDto.q,
+            mode: 'insensitive',
+          },
+          user: {
+            user_id: filterProductsDto.user_id,
+          },
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+    return [];
   }
 
   async createProduct(
     createProductDto: CreateProductDto,
-  ): Promise<ProductWithRelations> {
-    const cover_img_url = await this.objectStorageService.uploadFile(
-      createProductDto.cover_image,
-    );
-
-    let images_url = [];
-
-    if (createProductDto.images && createProductDto.images.length > 0) {
-      images_url = await Promise.all(
-        createProductDto.images.map((image) =>
-          this.objectStorageService.uploadFile(image),
-        ),
+    user: User,
+  ): Promise<ProductWithRelations | null> {
+    try {
+      const cover_img_url = await this.objectStorageService.uploadFile(
+        createProductDto.cover_image,
       );
-    }
 
-    const categories_connection = [];
+      let images_url = [];
 
-    if (createProductDto.categories) {
-      for (const category of createProductDto.categories) {
-        const categoryObj = await this.categoriesService.getCategoryByName(
-          category,
+      if (createProductDto.images && createProductDto.images.length > 0) {
+        images_url = await Promise.all(
+          createProductDto.images.map((image) =>
+            this.objectStorageService.uploadFile(image),
+          ),
         );
+      }
 
-        if (categoryObj) {
-          categories_connection.push(categoryObj.id);
+      const categories_connection = [];
+
+      if (createProductDto.categories) {
+        for (const category of createProductDto.categories) {
+          const categoryObj = await this.categoriesService.getCategoryByName(
+            category,
+          );
+
+          if (categoryObj) {
+            categories_connection.push(categoryObj.id);
+          }
         }
       }
-    }
 
-    return await this.prisma.product.create({
-      data: {
-        name: createProductDto.name,
-        description: createProductDto.description,
-        price: +createProductDto.price,
-        tags: createProductDto.tags,
-        cover_image: {
-          create: {
-            image: cover_img_url,
+      return await this.prisma.product.create({
+        data: {
+          user: {
+            connect: {
+              user_id: user.user_id,
+            },
+          },
+          name: createProductDto.name,
+          description: createProductDto.description,
+          price: +createProductDto.price,
+          tags: createProductDto.tags,
+          cover_image: {
+            create: {
+              image: cover_img_url,
+            },
+          },
+          categories: {
+            connect: categories_connection,
+          },
+          images: {
+            create: images_url.map((url) => ({
+              image: url,
+            })),
           },
         },
-        categories: {
-          connect: categories_connection,
+        include: {
+          categories: true,
+          images: true,
+          user: true,
+          cover_image: true,
         },
-        images: {
-          create: images_url.map((url) => ({
-            image: url,
-          })),
-        },
-      },
-      include: {
-        categories: true,
-        images: true,
-        cover_image: true,
-      },
-    });
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
+    return null;
   }
 
   async updateProduct(
     id: number,
     updateProductDto: UpdateProductDto,
+    user: User,
   ): Promise<ProductWithRelations> {
     const product = await this.getProductById(id);
     const isUpdatingCoverImage = updateProductDto.cover_image;
@@ -117,6 +157,12 @@ export class ProductsService {
     const previousImages = product.images;
     let updatedCoverImage = null;
     let updatedImages = null;
+
+    if (user.user_id !== product.user.user_id) {
+      throw new ForbiddenException(
+        'No tienes permisos para editar este producto',
+      );
+    }
 
     if (isUpdatingCoverImage) {
       this.productImageService.deleteProductImage(previusCoverImage.id);
@@ -183,13 +229,20 @@ export class ProductsService {
         cover_image: true,
         images: true,
         categories: true,
+        user: true,
       },
     });
   }
 
-  async deleteProduct(id: number): Promise<Product> {
+  async deleteProduct(id: number, user: User): Promise<Product> {
     // Delete images first
     const product = await this.getProductById(id);
+
+    if (user.user_id !== product.user.user_id) {
+      throw new ForbiddenException(
+        'No tienes permisos para eliminar este producto',
+      );
+    }
 
     if (!product) {
       throw new NotFoundException('Product not found');

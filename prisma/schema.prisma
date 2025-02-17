@@ -17,6 +17,7 @@ model User {
   password           String?      @db.VarChar(100)
   profile_picture    String?
   activities         Activity[]
+  products           Product[]
   reputations        Reputation[]
   chats              Chat[]
   github_id          String?
@@ -77,6 +78,8 @@ model Product {
   price       Int
   tags        String[]
   categories  ProductCategoriesOnProduct[]
+  userId      Int
+  user        User                         @relation(fields: [userId], references: [user_id])
   cover_image ProductImage?                @relation("CoverImage")
   images      ProductImage[]               @relation("ProductImages")
 }

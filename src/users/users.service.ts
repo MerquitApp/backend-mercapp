@@ -3,17 +3,27 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { PrismaService } from 'src/common/db/prisma.service';
 import { Users } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { createOauthUserDto } from './dto/create-user-oauth.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { EmailService } from 'src/email/email.service';
+import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
+import { CreateOauthUserDto } from './dto/create-user-oauth.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async getAllUser(): Promise<Users[]> {
     return this.prisma.user.findMany();
@@ -27,7 +37,7 @@ export class UsersService {
       throw new ConflictException('username already exists');
     }
 
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         email: data.email,
         name: data.name,
@@ -35,9 +45,20 @@ export class UsersService {
         phone_number: data.phoneNumber,
       },
     });
+
+    const token = this.generateAccountToken(user);
+
+    await this.emailService.sendAccoutVerificationEmail(data.email, {
+      userName: data.name,
+      confirmationLink: `${this.configService.get(
+        'FRONTEND_URL',
+      )}/verify-account/${token}`,
+    });
+
+    return user;
   }
 
-  async createOrFindOauthUser(data: createOauthUserDto): Promise<Users> {
+  async createOrFindOauthUser(data: CreateOauthUserDto): Promise<Users> {
     const existing = await this.findByEmail(data.email);
 
     if (existing) {
@@ -92,6 +113,36 @@ export class UsersService {
     });
   }
 
+  generateAccountToken(user: User) {
+    return this.jwtService.sign({
+      user_id: user.user_id,
+      email: user.email,
+    });
+  }
+
+  async verifyAccount(token: string) {
+    const { user_id, email } = this.jwtService.verify(token);
+    const user = await this.prisma.user.findUnique({
+      where: {
+        user_id,
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.prisma.user.update({
+      where: {
+        user_id,
+      },
+      data: {
+        verification_state: true,
+      },
+    });
+  }
+
   async update(user_id: number, updateUserDto: UpdateUserDto) {
     const user = await this.prisma.user.update({
       where: {
@@ -101,6 +152,21 @@ export class UsersService {
         name: updateUserDto.name,
         email: updateUserDto.email,
         phone_number: updateUserDto.phoneNumber,
+      },
+    });
+
+    return user;
+  }
+
+  async passwordReset(user_id: number, newPassword: string) {
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+    const user = await this.prisma.user.update({
+      where: {
+        user_id,
+      },
+      data: {
+        password: hashedPassword,
       },
     });
 
