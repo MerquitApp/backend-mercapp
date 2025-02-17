@@ -11,6 +11,7 @@ import { EmailModule } from './email/email.module';
 import { ResendModule } from 'nestjs-resend';
 import { JwtModule } from '@nestjs/jwt';
 import { PaymentsModule } from './payments/payments.module';
+import { ReputationModule } from './reputation/reputation.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PaymentsModule } from './payments/payments.module';
     AuthModule,
     EmailModule,
     PaymentsModule,
+    ReputationModule,
   ],
   controllers: [],
   providers: [],
