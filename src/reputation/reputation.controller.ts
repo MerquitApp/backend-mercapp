@@ -1,5 +1,4 @@
 import { Controller, Body, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
 import { ReputationService } from './reputation.service';
 import { CreateReputationDto } from './dto/create-reputation.dto';
 import { Reputation } from '@prisma/client';
@@ -26,13 +25,11 @@ export class ReputationController {
   })
   async create(
     @Body() createReputationDto: CreateReputationDto,
-    @Req() req: Request,
+    @Req() req,
   ): Promise<Reputation> {
-    const userId = parseInt(req.cookies.userId);
-    if (isNaN(userId)) {
-      throw new Error('No se ha encontrado el id del usuario');
-    }
-    return this.reputationService.createReputation(createReputationDto);
+    const user = req.user;
+
+    return this.reputationService.createReputation(createReputationDto, user);
   }
 
   // Endpoint para obtener todas las reputaciones

@@ -13,5 +13,5 @@ export class ReputationEntity {
   @ApiProperty({
     description: 'Identificador del usuario que creó la reputación',
   })
-  userId: number;
+  user: string;
 }

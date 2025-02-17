@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { CreateACLRequest } from 'aws-sdk/clients/memorydb';
 import { Reputation } from '@prisma/client';
 import { CreateReputationDto } from './dto/create-reputation.dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class ReputationService {
@@ -18,13 +18,18 @@ export class ReputationService {
 
   async createReputation(
     createReputation: CreateReputationDto,
+    user: User,
   ): Promise<Reputation> {
-    const { score, comment, userId } = createReputation;
+    const { score, comment } = createReputation;
     return this.prisma.reputation.create({
       data: {
         score,
         comment,
-        userId,
+        user: {
+          connect: {
+            user_id: user.user_id,
+          },
+        },
       },
     });
   }
