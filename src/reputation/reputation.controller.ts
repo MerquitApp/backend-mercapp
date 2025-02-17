@@ -1,10 +1,11 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Body, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 import { ReputationService } from './reputation.service';
 import { CreateReputationDto } from './dto/create-reputation.dto';
 import { Reputation } from '@prisma/client';
-import { Body, Get, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateCategoryDto } from 'src/categories/dto/create-category.dto';
+import { JwtAuthGuard } from 'src/auth/auth.guard';
+import { ReputationEntity } from './entities/reputation.entity';
 
 @ApiTags('reputation')
 @Controller('reputation')
@@ -13,6 +14,7 @@ export class ReputationController {
 
   // Endpoint para crear una nueva reputación
   @Post()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Crear reputación',
     description: 'Crea una nueva reputación en el sistema.',
@@ -20,11 +22,16 @@ export class ReputationController {
   @ApiResponse({
     status: 201,
     description: 'Reputación creada exitosamente.',
-    type: CreateCategoryDto,
+    type: ReputationEntity,
   })
   async create(
     @Body() createReputationDto: CreateReputationDto,
+    @Req() req: Request,
   ): Promise<Reputation> {
+    const userId = parseInt(req.cookies.userId);
+    if (isNaN(userId)) {
+      throw new Error('No se ha encontrado el id del usuario');
+    }
     return this.reputationService.createReputation(createReputationDto);
   }
 
@@ -38,7 +45,7 @@ export class ReputationController {
   @ApiResponse({
     status: 200,
     description: 'Reputación encontrada.',
-    type: CreateCategoryDto,
+    type: ReputationEntity,
   })
   async findAll(@Body('id') id: number): Promise<Reputation> {
     return this.reputationService.getReputation(id);

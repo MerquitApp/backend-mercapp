@@ -15,11 +15,4 @@ export class CreateReputationDto {
   })
   @IsString()
   readonly comment: string;
-
-  @ApiProperty({
-    description: 'Usuario que ha creado la reputación',
-    example: '1',
-  })
-  @IsInt()
-  readonly userId: number;
 }
