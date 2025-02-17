@@ -13,6 +13,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PaymentsModule } from './payments/payments.module';
 import { ChatModule } from './chat/chat.module';
 import { MessageModule } from './message/message.module';
+import { ReputationModule } from './reputation/reputation.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { MessageModule } from './message/message.module';
     PaymentsModule,
     ChatModule,
     MessageModule,
+    ReputationModule,
   ],
   controllers: [],
   providers: [],
