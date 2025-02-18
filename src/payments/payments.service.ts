@@ -103,7 +103,7 @@ export class PaymentsService {
       )}/api/payments/cancel?session_id={CHECKOUT_SESSION_ID}`,
     });
 
-    await this.productsService.desactiveProduct(productId);
+    await this.productsService.deactivateProduct(productId);
 
     return session;
   }

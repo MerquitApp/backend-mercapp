@@ -24,6 +24,7 @@ model User {
   github_id          String?
   google_id          String?
   orders             Order[]
+  likes              Like[]
   created_at         DateTime     @default(now()) @map("registration_date")
 
   @@map("usuario")
@@ -86,6 +87,7 @@ model Product {
   images      ProductImage[]               @relation("ProductImages")
   order       Order?
   isActive    Boolean                      @default(true)
+  Like        Like[]
 }
 
 model Chat {
@@ -118,4 +120,13 @@ model Order {
   productId Int         @unique
   product   Product     @relation(fields: [productId], references: [id])
   status    OrderStatus @default(pending)
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [user_id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
 }

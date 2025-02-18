@@ -15,6 +15,7 @@ import { ChatModule } from './chat/chat.module';
 import { MessageModule } from './message/message.module';
 import { ReputationModule } from './reputation/reputation.module';
 import { OrdersModule } from './orders/orders.module';
+import { LikesModule } from './likes/likes.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { OrdersModule } from './orders/orders.module';
     MessageModule,
     ReputationModule,
     OrdersModule,
+    LikesModule,
   ],
   controllers: [],
   providers: [],
