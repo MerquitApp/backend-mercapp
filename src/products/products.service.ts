@@ -11,6 +11,7 @@ import { CategoriesService } from 'src/categories/categories.service';
 import { Prisma, Product, User } from '@prisma/client';
 import { ProductImagesService } from 'src/product-images/product-images.service';
 import { FilterProductsDto } from './dto/filter-products.dto';
+import { LikesService } from 'src/likes/likes.service';
 
 type ProductWithRelations = Prisma.ProductGetPayload<{
   include: {
@@ -28,10 +29,20 @@ export class ProductsService {
     private readonly objectStorageService: ObjectStorageService,
     private readonly categoriesService: CategoriesService,
     private readonly productImageService: ProductImagesService,
+    private readonly likesService: LikesService,
   ) {}
 
-  async getProductById(id: number): Promise<ProductWithRelations> {
-    return await this.prisma.product.findUnique({
+  async getProductById(
+    id: number,
+    user_id?: number,
+  ): Promise<ProductWithRelations & { isLiked: boolean }> {
+    let isLiked = false;
+
+    if (user_id) {
+      isLiked = await this.likesService.getIsProductLiked(user_id, id);
+    }
+
+    const product = await this.prisma.product.findUnique({
       where: {
         id,
       },
@@ -42,6 +53,11 @@ export class ProductsService {
         user: true,
       },
     });
+
+    return {
+      ...product,
+      isLiked,
+    };
   }
 
   async getAllProduct(
@@ -146,7 +162,7 @@ export class ProductsService {
     return null;
   }
 
-  async desactiveProduct(id: number) {
+  async deactivateProduct(id: number) {
     return await this.prisma.product.update({
       where: {
         id,

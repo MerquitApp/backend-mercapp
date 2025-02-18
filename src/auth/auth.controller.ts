@@ -14,7 +14,7 @@ import { LoginDto } from './dto/login-user.dto';
 import { Response } from 'express';
 import { RegisterUsersDto } from './dto/register-user.dto';
 import { AUTH_COOKIE, AUTH_COOKIE_EXPIRATION } from 'src/common/constants';
-import { JwtAuthGuard } from './auth.guard';
+import { JwtAuthGuard } from './guards/auth.guard';
 import { VerifyAccountDto } from './dto/verify-account.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';

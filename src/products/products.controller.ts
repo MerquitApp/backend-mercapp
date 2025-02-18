@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  InternalServerErrorException,
   Param,
   Post,
   Put,
@@ -26,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { FilterProductsDto } from './dto/filter-products.dto';
+import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-auth.guard';
 
 @ApiTags('products')
 @Controller('products')
@@ -43,6 +43,7 @@ export class ProductsController {
     });
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener un producto',
@@ -50,8 +51,10 @@ export class ProductsController {
   })
   @ApiResponse({ status: 200, description: 'Información del producto.' })
   @ApiResponse({ status: 404, description: 'Producto no encontrado.' })
-  getProduct(@Param('id') id: number) {
-    return this.productsService.getProductById(id);
+  getProduct(@Param('id') id: number, @Req() req) {
+    const user = req?.user;
+
+    return this.productsService.getProductById(id, user?.user_id);
   }
 
   @Post()
