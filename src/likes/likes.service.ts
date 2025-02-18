@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/db/prisma.service';
 
 @Injectable()
@@ -28,6 +28,12 @@ export class LikesService {
   }
 
   async createLike(user_id: number, product_id: number) {
+    const isLiked = await this.getIsProductLiked(user_id, product_id);
+
+    if (isLiked) {
+      throw new BadRequestException('You already liked this product');
+    }
+
     return await this.prisma.like.create({
       data: {
         userId: user_id,
