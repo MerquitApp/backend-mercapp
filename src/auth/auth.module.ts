@@ -20,6 +20,7 @@ import { EmailModule } from 'src/email/email.module';
     GoogleStrategy,
     GithubStrategy,
   ],
+  exports: [AuthService],
   imports: [
     PassportModule,
     ConfigModule,

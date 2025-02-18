@@ -33,6 +33,10 @@ export class AuthService {
       throw new NotFoundException('user not found');
     }
 
+    if (!user.password) {
+      throw new NotFoundException('user not found');
+    }
+
     const validatePassword = await bcrypt.compare(password, user.password);
 
     if (!validatePassword) {
@@ -42,6 +46,21 @@ export class AuthService {
     return {
       token: this.usersService.generateAccountToken(user),
       user,
+    };
+  }
+
+  async verify(token: string): Promise<any> {
+    const { user_id } = this.jwtService.verify(token);
+    const user = await this.usersService.findById(user_id);
+
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+
+    return {
+      user_id,
+      name: user.name,
+      email: user.email,
     };
   }
 

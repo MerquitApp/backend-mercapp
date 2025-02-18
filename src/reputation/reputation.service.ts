@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
 import { Reputation } from '@prisma/client';
 import { CreateReputationDto } from './dto/create-reputation.dto';
 import { User } from '@prisma/client';
+import { PrismaService } from 'src/common/db/prisma.service';
 
 @Injectable()
 export class ReputationService {

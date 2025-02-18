@@ -11,14 +11,19 @@ model User {
   user_id            Int          @id @default(autoincrement())
   name               String       @db.VarChar(100)
   email              String       @unique @db.VarChar(45)
-  phone_number       String?       @unique
+  phone_number       String?      @unique
   role               String       @default("user")
   verification_state Boolean      @default(false)
-  password           String?       @db.VarChar(100)
+  password           String?      @db.VarChar(100)
   profile_picture    String?
   activities         Activity[]
   products           Product[]
   reputations        Reputation[]
+  chats              Chat[]
+  messages           Message[]
+  github_id          String?
+  google_id          String?
+  orders             Order[]
   created_at         DateTime     @default(now()) @map("registration_date")
 
   @@map("usuario")
@@ -79,4 +84,38 @@ model Product {
   user        User                         @relation(fields: [userId], references: [user_id])
   cover_image ProductImage?                @relation("CoverImage")
   images      ProductImage[]               @relation("ProductImages")
+  order       Order?
+  isActive    Boolean                      @default(true)
+}
+
+model Chat {
+  id        Int       @id @default(autoincrement())
+  messages  Message[]
+  users     User[]
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  chatId    Int
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [user_id])
+  createdAt DateTime @default(now())
+}
+
+enum OrderStatus {
+  pending
+  paid
+  canceled
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  user      User        @relation(fields: [userId], references: [user_id])
+  productId Int         @unique
+  product   Product     @relation(fields: [productId], references: [id])
+  status    OrderStatus @default(pending)
 }

@@ -11,7 +11,10 @@ import { EmailModule } from './email/email.module';
 import { ResendModule } from 'nestjs-resend';
 import { JwtModule } from '@nestjs/jwt';
 import { PaymentsModule } from './payments/payments.module';
+import { ChatModule } from './chat/chat.module';
+import { MessageModule } from './message/message.module';
 import { ReputationModule } from './reputation/reputation.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -35,7 +38,10 @@ import { ReputationModule } from './reputation/reputation.module';
     AuthModule,
     EmailModule,
     PaymentsModule,
+    ChatModule,
+    MessageModule,
     ReputationModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [],

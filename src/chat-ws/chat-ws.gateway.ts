@@ -1,24 +1,36 @@
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatWsService } from './chat-ws.service';
-import { Socket } from 'socket.io';
+import type { Socket, Server } from 'socket.io';
+import { MessageDto } from './dto/message.dto';
 
 @WebSocketGateway()
-export class ChatWsGateway {
+export class ChatWsGateway implements OnGatewayConnection {
   constructor(private readonly chatWsService: ChatWsService) {}
 
+  @WebSocketServer()
+  server: Server;
+
+  async handleConnection(client: Socket) {
+    const user = await this.chatWsService.getUserIdAuth(client);
+    await this.chatWsService.connectUser(client, user);
+  }
+
   @SubscribeMessage('message')
-  handleMessage(
+  async handleMessage(
     @ConnectedSocket()
     client: Socket,
     @MessageBody()
-    message: string,
+    messageDto: MessageDto,
   ) {
-    return this.chatWsService.handleMessage(client, message);
+    const user = await this.chatWsService.getUserIdAuth(client);
+    return this.chatWsService.handleMessage(client, messageDto, user);
   }
 
   @SubscribeMessage('join-call')
