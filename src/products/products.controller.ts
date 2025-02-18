@@ -164,7 +164,11 @@ export class ProductsController {
       updateProductDto.images = files.images;
     }
 
-    return this.productsService.updateProduct(id, updateProductDto, user);
+    return this.productsService.updateProduct(
+      id,
+      updateProductDto,
+      user.user_id,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'))

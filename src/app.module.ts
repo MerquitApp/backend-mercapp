@@ -14,6 +14,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { ChatModule } from './chat/chat.module';
 import { MessageModule } from './message/message.module';
 import { ReputationModule } from './reputation/reputation.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { ReputationModule } from './reputation/reputation.module';
     ChatModule,
     MessageModule,
     ReputationModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [],

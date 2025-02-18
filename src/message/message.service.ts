@@ -2,11 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from 'src/common/db/prisma.service';
+
+const include = {
+  chat: true,
+  user: true,
+};
 
 type Message = Prisma.MessageGetPayload<{
   include: {
     chat: true;
+    user: true;
   };
 }> & {
   chat: {
@@ -26,10 +32,13 @@ export class MessageService {
         chat: {
           connect: { id: createMessageDto.chat_id },
         },
+        user: {
+          connect: {
+            user_id: createMessageDto.user_id,
+          },
+        },
       },
-      include: {
-        chat: true,
-      },
+      include,
     });
 
     return createMessage;
@@ -40,9 +49,7 @@ export class MessageService {
       where: {
         chatId: chat_id,
       },
-      include: {
-        chat: true,
-      },
+      include,
     });
   }
 
@@ -51,9 +58,7 @@ export class MessageService {
       where: {
         id,
       },
-      include: {
-        chat: true,
-      },
+      include,
     });
   }
 
@@ -68,9 +73,7 @@ export class MessageService {
       data: {
         content: updateMessageDto.content,
       },
-      include: {
-        chat: true,
-      },
+      include,
     });
   }
 }

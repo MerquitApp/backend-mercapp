@@ -1,13 +1,16 @@
 import {
+  Body,
   Controller,
   Get,
   NotFoundException,
   Param,
+  Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateChatDto } from './dto/create-chat.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('chat')
@@ -24,5 +27,11 @@ export class ChatController {
     }
 
     throw new NotFoundException("Chat doesn't exist");
+  }
+
+  @Post('')
+  async createChat(@Body() createChatDto: CreateChatDto, @Req() req) {
+    const user = req.user;
+    return this.chatService.findOrCreateUsersChat(createChatDto, user);
   }
 }

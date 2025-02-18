@@ -3,10 +3,20 @@ import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import Stripe from 'stripe';
 import { ConfigService, ConfigModule } from '@nestjs/config';
+import { ProductsModule } from 'src/products/products.module';
+import { OrdersModule } from 'src/orders/orders.module';
+import { UsersModule } from 'src/users/users.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Global()
 @Module({
-  imports: [ConfigModule],
+  imports: [
+    ConfigModule,
+    ProductsModule,
+    OrdersModule,
+    UsersModule,
+    EmailModule,
+  ],
   providers: [
     PaymentsService,
     {

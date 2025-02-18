@@ -7,4 +7,7 @@ export class CreateMessageDto {
 
   @IsNumber()
   chat_id: number;
+
+  @IsNumber()
+  user_id: number;
 }

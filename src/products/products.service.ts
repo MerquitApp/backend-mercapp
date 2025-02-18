@@ -65,6 +65,7 @@ export class ProductsService {
           user: {
             user_id: filterProductsDto.user_id,
           },
+          isActive: true,
         },
       });
     } catch (error) {
@@ -145,10 +146,27 @@ export class ProductsService {
     return null;
   }
 
+  async desactiveProduct(id: number) {
+    return await this.prisma.product.update({
+      where: {
+        id,
+      },
+      data: {
+        isActive: false,
+      },
+      include: {
+        cover_image: true,
+        images: true,
+        categories: true,
+        user: true,
+      },
+    });
+  }
+
   async updateProduct(
     id: number,
     updateProductDto: UpdateProductDto,
-    user: User,
+    userId: number,
   ): Promise<ProductWithRelations> {
     const product = await this.getProductById(id);
     const isUpdatingCoverImage = updateProductDto.cover_image;
@@ -158,7 +176,7 @@ export class ProductsService {
     let updatedCoverImage = null;
     let updatedImages = null;
 
-    if (user.user_id !== product.user.user_id) {
+    if (userId !== product.user.user_id) {
       throw new ForbiddenException(
         'No tienes permisos para editar este producto',
       );
@@ -201,29 +219,35 @@ export class ProductsService {
         id,
       },
       data: {
-        name: updateProductDto.name,
-        description: updateProductDto.description,
-        tags: updateProductDto.tags,
+        name: updateProductDto.name ?? product.name,
+        description: updateProductDto.description ?? product.description,
+        tags: updateProductDto.tags ?? product.tags,
         categories: updateProductDto.categories
           ? {
               connect: categories_connection,
             }
-          : undefined,
-        price: updateProductDto.price ? +updateProductDto.price : undefined,
+          : {
+              connect: product.categories,
+            },
+        price: updateProductDto.price ? +updateProductDto.price : product.price,
         images: updateProductDto.images
           ? {
               create: updatedImages.map((image) => ({
                 image,
               })),
             }
-          : undefined,
+          : {
+              connect: product.images,
+            },
         cover_image: updateProductDto.cover_image
           ? {
               create: {
                 image: updatedCoverImage,
               },
             }
-          : undefined,
+          : {
+              connect: product.cover_image,
+            },
       },
       include: {
         cover_image: true,

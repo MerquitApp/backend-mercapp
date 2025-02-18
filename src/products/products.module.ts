@@ -10,5 +10,6 @@ import { ProductImagesModule } from 'src/product-images/product-images.module';
   controllers: [ProductsController],
   providers: [ProductsService, PrismaService],
   imports: [ObjectStorageModule, CategoriesModule, ProductImagesModule],
+  exports: [ProductsService],
 })
 export class ProductsModule {}

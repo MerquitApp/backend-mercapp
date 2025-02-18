@@ -4,13 +4,18 @@ import {
   OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatWsService } from './chat-ws.service';
-import type { Socket } from 'socket.io';
+import type { Socket, Server } from 'socket.io';
+import { MessageDto } from './dto/message.dto';
 
 @WebSocketGateway()
 export class ChatWsGateway implements OnGatewayConnection {
   constructor(private readonly chatWsService: ChatWsService) {}
+
+  @WebSocketServer()
+  server: Server;
 
   async handleConnection(client: Socket) {
     const user = await this.chatWsService.getUserIdAuth(client);
@@ -18,13 +23,14 @@ export class ChatWsGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('message')
-  handleMessage(
+  async handleMessage(
     @ConnectedSocket()
     client: Socket,
     @MessageBody()
-    message: string,
+    messageDto: MessageDto,
   ) {
-    return this.chatWsService.handleMessage(client, message);
+    const user = await this.chatWsService.getUserIdAuth(client);
+    return this.chatWsService.handleMessage(client, messageDto, user);
   }
 
   @SubscribeMessage('join-call')

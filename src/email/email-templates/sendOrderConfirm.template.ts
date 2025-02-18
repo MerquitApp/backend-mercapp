@@ -4,7 +4,7 @@ export interface OrderConfirmationEmailTemplate {
   userName: string;
   orderNumber: string;
   orderDate: string;
-  orderTotal: string;
+  orderTotal: number;
   orderLink: string;
 }
 
@@ -46,7 +46,7 @@ export const sendOrderConfirmEmailTemplate = ({
         </tr>
         <tr>
           <td align="center" style="font-size: 14px; color: #555; padding-bottom: 10px;">
-            Total: <strong>${orderTotal}</strong>
+            Total: <strong>${orderTotal}€</strong>
           </td>
         </tr>
         <tr>

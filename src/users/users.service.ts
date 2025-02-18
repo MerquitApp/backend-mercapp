@@ -68,6 +68,7 @@ export class UsersService {
     return this.prisma.user.create({
       data: {
         ...data,
+        verification_state: true,
       },
     });
   }

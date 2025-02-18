@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
-import { Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { ChatService } from 'src/chat/chat.service';
 import { AUTH_COOKIE } from 'src/common/constants';
 import { parseCookies } from 'src/common/helpers/parseCookies';
+import type { Socket } from 'socket.io';
+import { MessageDto } from './dto/message.dto';
+import { MessageService } from 'src/message/message.service';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class ChatWsService {
@@ -15,10 +18,20 @@ export class ChatWsService {
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
     private readonly chatService: ChatService,
+    private readonly messageService: MessageService,
   ) {}
 
-  handleMessage(client: any, message: string) {
-    return client.broadcast.emit('message', message);
+  async handleMessage(client: Socket, messageDto: MessageDto, user: User) {
+    try {
+      await this.messageService.createMessage({
+        ...messageDto,
+        user_id: user.user_id,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
+    return client.to(`${messageDto.chat_id}`).emit('message', messageDto);
   }
 
   handleOffer(callId: string, offer: string) {

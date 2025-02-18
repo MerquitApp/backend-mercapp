@@ -9,6 +9,10 @@ import {
   PasswordResetEmailTemplate,
   sendPasswordResetEmailTemplate,
 } from './email-templates/sendPasswordReset.template';
+import {
+  OrderConfirmationEmailTemplate,
+  sendOrderConfirmEmailTemplate,
+} from './email-templates/sendOrderConfirm.template';
 
 @Injectable()
 export class EmailService {
@@ -45,12 +49,15 @@ export class EmailService {
     });
   }
 
-  async sendOrderConfirmationEmail(email: string) {
+  async sendOrderConfirmationEmail(
+    email: string,
+    orderConfirmationTemplate: OrderConfirmationEmailTemplate,
+  ) {
     await this.resendService.send({
       from: this.RESEND_EMAIL,
       to: email,
       subject: 'Confirmación de pedido',
-      html: 'TODO',
+      html: sendOrderConfirmEmailTemplate(orderConfirmationTemplate),
     });
   }
 }
