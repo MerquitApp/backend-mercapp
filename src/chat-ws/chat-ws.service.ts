@@ -98,6 +98,11 @@ export class ChatWsService {
   }
 
   async connectUser(client: Socket, user: any) {
+    if (!user) {
+      client.disconnect();
+      return;
+    }
+
     const chats = await this.chatService.getChatsByUserId(user.user_id);
     const chatsIds = chats.map((chat) => chat.id);
 

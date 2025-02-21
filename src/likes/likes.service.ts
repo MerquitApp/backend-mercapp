@@ -11,7 +11,12 @@ export class LikesService {
         userId: user_id,
       },
       include: {
-        product: true,
+        product: {
+          include: {
+            images: true,
+            cover_image: true,
+          },
+        },
       },
     });
   }
