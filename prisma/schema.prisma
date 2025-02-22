@@ -26,6 +26,7 @@ model User {
   orders             Order[]
   likes              Like[]
   created_at         DateTime     @default(now()) @map("registration_date")
+  offers             Offer[]
 
   @@map("usuario")
 }
@@ -88,6 +89,7 @@ model Product {
   order       Order?
   isActive    Boolean                      @default(true)
   Like        Like[]
+  offers      Offer[]
 }
 
 model Chat {
@@ -128,5 +130,15 @@ model Like {
   user      User     @relation(fields: [userId], references: [user_id])
   productId Int
   product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Offer{
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [user_id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  price     Float
   createdAt DateTime @default(now())
 }
