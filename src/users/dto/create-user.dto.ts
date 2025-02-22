@@ -1,5 +1,6 @@
 import {
   IsAlpha,
+  IsAlphanumeric,
   IsEmail,
   IsNotEmpty,
   IsPhoneNumber,
@@ -15,9 +16,7 @@ export class CreateUserDto {
       'Nombre del usuario. Solo se permiten letras sin caracteres especiales.',
     example: 'Juan',
   })
-  @IsAlpha('es-ES', {
-    message: 'El nombre no puede contener caracteres especiales',
-  })
+  @IsAlphanumeric()
   @IsNotEmpty()
   name: string;
 
