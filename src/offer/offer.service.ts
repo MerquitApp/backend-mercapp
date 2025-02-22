@@ -42,11 +42,6 @@ export class OfferService {
     });
   }
 
-  // 1. Eliminar por ID
-  // 2. Actualizar por ID
-  // 3. Obtener todos los ofertas por id de usuario
-  // 4. Obtener todos los ofertas por id de producto
-
   findOne(id: number) {
     return this.prisma.offer.findUnique({
       where: { id },
