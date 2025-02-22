@@ -16,6 +16,7 @@ import { MessageModule } from './message/message.module';
 import { ReputationModule } from './reputation/reputation.module';
 import { OrdersModule } from './orders/orders.module';
 import { LikesModule } from './likes/likes.module';
+import { OfferModule } from './offer/offer.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { LikesModule } from './likes/likes.module';
     ReputationModule,
     OrdersModule,
     LikesModule,
+    OfferModule,
   ],
   controllers: [],
   providers: [],
