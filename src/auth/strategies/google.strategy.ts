@@ -24,12 +24,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     profile: any,
     done: (err: any, user: any) => void,
   ): Promise<any> {
-    const user = await this.usersService.createOrFindOauthUser({
-      name: profile.displayName,
-      email: profile.emails[0].value,
-      profile_picture: profile.photos[0].value,
-      google_id: profile.id,
-    });
+    const user = await this.usersService.findUserByGoogleId(profile.id);
+
+    if (!user) {
+      const newUser = await this.usersService.createOauthUser({
+        name: profile.displayName,
+        email: profile.emails[0].value,
+        profile_picture: profile.photos[0].value,
+        google_id: profile.id,
+      });
+
+      return done(null, newUser);
+    }
 
     return done(null, user);
   }

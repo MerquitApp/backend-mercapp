@@ -58,19 +58,52 @@ export class UsersService {
     return user;
   }
 
-  async createOrFindOauthUser(data: CreateOauthUserDto): Promise<Users> {
+  async createOauthUser(data: CreateOauthUserDto) {
     const existing = await this.findByEmail(data.email);
 
     if (existing) {
-      return existing;
+      throw new ConflictException('username already exists');
     }
 
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
-        ...data,
-        verification_state: true,
+        email: data.email,
+        name: data.name,
+        profile_picture: data.profile_picture,
+        github_id: data.github_id,
+        google_id: data.google_id,
       },
     });
+
+    return user;
+  }
+
+  async findUserByGithubId(github_id: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        github_id,
+      },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    return user;
+  }
+
+  async findUserByGoogleId(google_id: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        google_id,
+      },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    return user;
   }
 
   async findByEmail(email: string) {
