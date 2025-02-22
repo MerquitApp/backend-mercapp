@@ -33,27 +33,43 @@ export class UsersService {
     const existing = await this.findByEmail(data.email);
     const hashedPassword = bcrypt.hashSync(data.password, 10);
 
-    if (existing) {
+    const isOauthAccount = existing.github_id || existing.google_id;
+
+    if (existing && !isOauthAccount) {
       throw new ConflictException('username already exists');
     }
 
-    const user = await this.prisma.user.create({
-      data: {
-        email: data.email,
-        name: data.name,
-        password: hashedPassword,
-        phone_number: data.phoneNumber,
-      },
-    });
+    let user;
 
-    const token = this.generateAccountToken(user);
+    if (isOauthAccount) {
+      user = this.prisma.user.update({
+        where: {
+          email: data.email,
+        },
+        data: {
+          password: hashedPassword,
+          phone_number: data.phoneNumber,
+        },
+      });
+    } else {
+      user = await this.prisma.user.create({
+        data: {
+          email: data.email,
+          name: data.name,
+          password: hashedPassword,
+          phone_number: data.phoneNumber,
+        },
+      });
 
-    await this.emailService.sendAccoutVerificationEmail(data.email, {
-      userName: data.name,
-      confirmationLink: `${this.configService.get(
-        'FRONTEND_URL',
-      )}/verify-account/${token}`,
-    });
+      const token = this.generateAccountToken(user);
+
+      await this.emailService.sendAccoutVerificationEmail(data.email, {
+        userName: data.name,
+        confirmationLink: `${this.configService.get(
+          'FRONTEND_URL',
+        )}/verify-account/${token}`,
+      });
+    }
 
     return user;
   }

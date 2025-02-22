@@ -21,10 +21,18 @@ import { ApiTags } from '@nestjs/swagger';
 export class OfferController {
   constructor(private readonly offerService: OfferService) {}
 
-  @Post()
-  create(@Body() createOfferDto: CreateOfferDto, @Req() req) {
-    const user = req.user.user_id;
-    return this.offerService.create(createOfferDto, user.user_id);
+  @Post(':product_id')
+  create(
+    @Param('product_id') product_id: string,
+    @Body() createOfferDto: CreateOfferDto,
+    @Req() req,
+  ) {
+    const userId = req.user.user_id;
+    return this.offerService.createOrUpdate(
+      +product_id,
+      createOfferDto,
+      userId,
+    );
   }
 
   @Get(':id')
