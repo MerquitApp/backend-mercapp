@@ -17,6 +17,12 @@ import { CreateChatDto } from './dto/create-chat.dto';
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
+  @Get('')
+  async getChats(@Req() req) {
+    const user = req.user;
+    return this.chatService.getChatsByUserId(user.user_id);
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req) {
     const user = req.user;

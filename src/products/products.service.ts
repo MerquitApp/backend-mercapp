@@ -275,7 +275,6 @@ export class ProductsService {
   }
 
   async deleteProduct(id: number, user: User): Promise<Product> {
-    // Delete images first
     const product = await this.getProductById(id);
 
     if (user.user_id !== product.user.user_id) {
@@ -288,6 +287,7 @@ export class ProductsService {
       throw new NotFoundException('Product not found');
     }
 
+    // Delete images first
     const coverImage = product.cover_image;
     const images = product.images;
 

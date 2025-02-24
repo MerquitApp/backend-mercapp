@@ -6,6 +6,8 @@ import { GeneralExceptionFilter } from 'src/filters/exceptions/general-exception
 import { PrismaService } from 'src/common/db/prisma.service';
 import { EmailModule } from 'src/email/email.module';
 import { ConfigModule } from '@nestjs/config';
+import { ChatModule } from 'src/chat/chat.module';
+import { ProductsModule } from 'src/products/products.module';
 
 @Module({
   controllers: [UsersController],
@@ -17,7 +19,7 @@ import { ConfigModule } from '@nestjs/config';
     },
     PrismaService,
   ],
-  imports: [EmailModule, ConfigModule],
+  imports: [EmailModule, ConfigModule, ChatModule, ProductsModule],
   exports: [UsersService],
 })
 export class UsersModule {}

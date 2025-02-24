@@ -7,14 +7,22 @@ import {
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/common/db/prisma.service';
-import { Users } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { EmailService } from 'src/email/email.service';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { CreateOauthUserDto } from './dto/create-user-oauth.dto';
+import { ChatService } from 'src/chat/chat.service';
+import { ProductsService } from 'src/products/products.service';
+
+type UserWithRelations = Prisma.UserGetPayload<{
+  include: {
+    chats: true;
+    products: true;
+  };
+}>;
 
 @Injectable()
 export class UsersService {
@@ -23,13 +31,15 @@ export class UsersService {
     private readonly emailService: EmailService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly chatService: ChatService,
+    private readonly productsService: ProductsService,
   ) {}
 
-  async getAllUser(): Promise<Users[]> {
+  async getAllUser(): Promise<User[]> {
     return this.prisma.user.findMany();
   }
 
-  async createUser(data: CreateUserDto): Promise<Users> {
+  async createUser(data: CreateUserDto): Promise<User> {
     const existing = await this.findByEmail(data.email);
     const hashedPassword = bcrypt.hashSync(data.password, 10);
 
@@ -94,30 +104,22 @@ export class UsersService {
     return user;
   }
 
-  async findUserByGithubId(github_id: string) {
+  async findUserByGithubId(github_id: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
       where: {
         github_id,
       },
     });
 
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
     return user;
   }
 
-  async findUserByGoogleId(google_id: string) {
+  async findUserByGoogleId(google_id: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
       where: {
         google_id,
       },
     });
-
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
 
     return user;
   }
@@ -138,29 +140,48 @@ export class UsersService {
     return null;
   }
 
-  async findById(user_id: number) {
+  async findById(user_id: number): Promise<UserWithRelations | null> {
     const user = await this.prisma.user.findUnique({
       where: {
         user_id,
       },
       include: {
         chats: true,
+        products: true,
       },
     });
-
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
 
     return user;
   }
 
   async remove(user_id: number) {
-    await this.prisma.user.delete({
-      where: {
-        user_id,
-      },
-    });
+    try {
+      const user = await this.findById(user_id);
+
+      if (!user) {
+        throw new NotFoundException('No se encontró el usuario.');
+      }
+
+      user.chats.forEach(async ({ id }) => {
+        await this.chatService.deleteById(id);
+      });
+
+      user.products.forEach(async ({ id }) => {
+        this.productsService.deleteProduct(id, user);
+      });
+
+      await this.prisma.user.delete({
+        where: {
+          user_id,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'Error al eliminar el usuario',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   generateAccountToken(user: User) {
