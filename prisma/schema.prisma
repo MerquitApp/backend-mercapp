@@ -36,7 +36,7 @@ model Reputation {
   score   Int
   comment String
   userId  Int
-  user    User   @relation(fields: [userId], references: [user_id])
+  user    User   @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
   @@map("reputacion")
 }
@@ -45,7 +45,7 @@ model Activity {
   id          Int    @id @default(autoincrement())
   description String
   userId      Int
-  user        User   @relation(fields: [userId], references: [user_id])
+  user        User   @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
   @@map("actividad")
 }
@@ -83,7 +83,7 @@ model Product {
   tags        String[]
   categories  ProductCategoriesOnProduct[]
   userId      Int
-  user        User                         @relation(fields: [userId], references: [user_id])
+  user        User                         @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   cover_image ProductImage?                @relation("CoverImage")
   images      ProductImage[]               @relation("ProductImages")
   order       Order?
@@ -105,7 +105,7 @@ model Message {
   chatId    Int
   chat      Chat     @relation(fields: [chatId], references: [id])
   userId    Int
-  user      User     @relation(fields: [userId], references: [user_id])
+  user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   createdAt DateTime @default(now())
 }
 
@@ -118,7 +118,7 @@ enum OrderStatus {
 model Order {
   id        Int         @id @default(autoincrement())
   userId    Int
-  user      User        @relation(fields: [userId], references: [user_id])
+  user      User        @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   productId Int         @unique
   product   Product     @relation(fields: [productId], references: [id])
   status    OrderStatus @default(pending)
@@ -127,16 +127,16 @@ model Order {
 model Like {
   id        Int      @id @default(autoincrement())
   userId    Int
-  user      User     @relation(fields: [userId], references: [user_id])
+  user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   productId Int
   product   Product  @relation(fields: [productId], references: [id])
   createdAt DateTime @default(now())
 }
 
-model Offer{
+model Offer {
   id        Int      @id @default(autoincrement())
   userId    Int
-  user      User     @relation(fields: [userId], references: [user_id])
+  user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   productId Int
   product   Product  @relation(fields: [productId], references: [id])
   price     Float
