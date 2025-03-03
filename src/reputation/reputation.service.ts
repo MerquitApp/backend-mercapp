@@ -25,13 +25,33 @@ export class ReputationService {
       data: {
         score,
         comment,
-        user: {
+        fromUser: {
           connect: {
             user_id: user.user_id,
           },
         },
+        toUser: {
+          connect: {
+            user_id: createReputation.toUserId,
+          },
+        },
       },
     });
+  }
+
+  async getUserReputation(userId: number): Promise<any> {
+    const reputation = await this.prisma.reputation.findMany({
+      where: {
+        toUserId: userId,
+      },
+    });
+    const avg =
+      reputation.reduce((acc, cur) => acc + cur.score, 0) / reputation.length;
+
+    return {
+      reputation,
+      avg: avg || 0,
+    };
   }
 
   async updateReputation(id: number, reputation: any): Promise<any> {
@@ -50,4 +70,4 @@ export class ReputationService {
       },
     });
   }
-} //cierra clase
+}

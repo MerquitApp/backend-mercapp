@@ -3,6 +3,8 @@ import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateOfferDto } from './dto/update-offer.dto';
 import { PrismaService } from 'src/common/db/prisma.service';
 import { Prisma } from '@prisma/client';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { ProductsService } from 'src/products/products.service';
 
 const include = {
   user: true,
@@ -21,13 +23,19 @@ type Offer = Prisma.OfferGetPayload<{
 
 @Injectable()
 export class OfferService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+    private readonly productsService: ProductsService,
+  ) {}
 
   async create(
     product_id: number,
     createOfferDto: CreateOfferDto,
     user_id: number,
   ): Promise<Offer> {
+    const product = await this.productsService.getProductById(product_id);
+
     try {
       const offer = await this.prisma.offer.create({
         data: {
@@ -45,6 +53,11 @@ export class OfferService {
         },
         include,
       });
+
+      await this.notificationsService.createNotification(
+        product.userId,
+        `¡Tienes una oferta para ${product.name}!`,
+      );
 
       return offer;
     } catch (error) {

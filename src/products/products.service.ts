@@ -63,6 +63,18 @@ export class ProductsService {
   async getAllProduct(
     filterProductsDto: FilterProductsDto,
   ): Promise<ProductWithRelations[]> {
+    const categoryFilter = filterProductsDto.category
+      ? {
+          categories: {
+            some: {
+              category: {
+                name: filterProductsDto.category,
+              },
+            },
+          },
+        }
+      : {};
+
     try {
       return await this.prisma.product.findMany({
         include: {
@@ -82,6 +94,7 @@ export class ProductsService {
             user_id: filterProductsDto.user_id,
           },
           isActive: true,
+          ...categoryFilter,
         },
       });
     } catch (error) {

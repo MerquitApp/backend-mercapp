@@ -8,6 +8,7 @@ import { EmailModule } from 'src/email/email.module';
 import { ConfigModule } from '@nestjs/config';
 import { ChatModule } from 'src/chat/chat.module';
 import { ProductsModule } from 'src/products/products.module';
+import { ReputationModule } from 'src/reputation/reputation.module';
 
 @Module({
   controllers: [UsersController],
@@ -19,7 +20,13 @@ import { ProductsModule } from 'src/products/products.module';
     },
     PrismaService,
   ],
-  imports: [EmailModule, ConfigModule, ChatModule, ProductsModule],
+  imports: [
+    EmailModule,
+    ConfigModule,
+    ChatModule,
+    ProductsModule,
+    ReputationModule,
+  ],
   exports: [UsersService],
 })
 export class UsersModule {}

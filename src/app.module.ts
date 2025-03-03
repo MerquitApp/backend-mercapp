@@ -17,6 +17,7 @@ import { ReputationModule } from './reputation/reputation.module';
 import { OrdersModule } from './orders/orders.module';
 import { LikesModule } from './likes/likes.module';
 import { OfferModule } from './offer/offer.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { OfferModule } from './offer/offer.module';
     OrdersModule,
     LikesModule,
     OfferModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [],
