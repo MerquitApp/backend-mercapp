@@ -22,7 +22,8 @@ async function main() {
         data: {
           score: faker.number.int({ min: 1, max: 5 }),
           comment: faker.lorem.sentence(),
-          userId: user.user_id,
+          fromUserId: j,
+          toUserId: user.user_id,
         },
       });
     }

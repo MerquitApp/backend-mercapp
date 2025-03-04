@@ -81,7 +81,14 @@ export class PaymentsService {
       poduct = await this.createStripeProduct(productId);
     }
 
-    const order = await this.ordersService.createOrder(userId, productId);
+    let order = await this.ordersService.getOrderByUserIdAndProductId(
+      userId,
+      productId,
+    );
+
+    if (!order) {
+      order = await this.ordersService.createOrder(userId, productId);
+    }
 
     const session = await this.stripeClient.checkout.sessions.create({
       line_items: [{ price: poduct.default_price, quantity: 1 }],
@@ -103,8 +110,6 @@ export class PaymentsService {
       )}/api/payments/cancel?session_id={CHECKOUT_SESSION_ID}`,
     });
 
-    await this.productsService.deactivateProduct(productId);
-
     return session;
   }
 
@@ -117,6 +122,8 @@ export class PaymentsService {
     await this.ordersService.updateOrder(+session.metadata.order_id, {
       status: 'paid',
     });
+
+    await this.productsService.deactivateProduct(+session.metadata.product_id);
 
     await this.emailService.sendOrderConfirmationEmail(user.email, {
       userName: user.name,

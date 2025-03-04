@@ -1,4 +1,12 @@
-import { Controller, Body, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+  Param,
+} from '@nestjs/common';
 import { ReputationService } from './reputation.service';
 import { CreateReputationDto } from './dto/create-reputation.dto';
 import { Reputation } from '@prisma/client';
@@ -11,7 +19,6 @@ import { ReputationEntity } from './entities/reputation.entity';
 export class ReputationController {
   constructor(private readonly reputationService: ReputationService) {}
 
-  // Endpoint para crear una nueva reputación
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
@@ -32,8 +39,7 @@ export class ReputationController {
     return this.reputationService.createReputation(createReputationDto, user);
   }
 
-  // Endpoint para obtener todas las reputaciones
-  @Get()
+  @Get(':id')
   @ApiOperation({
     summary: 'Obtener reputación',
     description:
@@ -44,7 +50,7 @@ export class ReputationController {
     description: 'Reputación encontrada.',
     type: ReputationEntity,
   })
-  async findAll(@Body('id') id: number): Promise<Reputation> {
+  async findAll(@Param('id') id: number): Promise<Reputation> {
     return this.reputationService.getReputation(id);
   }
-} //cierra clase
+}

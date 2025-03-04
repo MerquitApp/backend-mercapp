@@ -1,12 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Order } from '@prisma/client';
 import { PrismaService } from 'src/common/db/prisma.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { ProductsService } from 'src/products/products.service';
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationsService,
+    private readonly productsService: ProductsService,
+  ) {}
 
   async createOrder(userId: number, productId: number) {
+    const product = await this.productsService.getProductById(productId);
+
+    if (!product.isActive) {
+      throw new BadRequestException('Product is not active');
+    }
+
+    await this.notificationService.createNotification(
+      product.userId,
+      `¡Has vendido ${product.name}!`,
+    );
+
     return this.prisma.order.create({
       data: {
         userId,
@@ -27,6 +44,15 @@ export class OrdersService {
     return this.prisma.order.delete({
       where: {
         id,
+      },
+    });
+  }
+
+  async getOrderByUserIdAndProductId(userId: number, productId: number) {
+    return this.prisma.order.findUnique({
+      where: {
+        userId,
+        productId,
       },
     });
   }

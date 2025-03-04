@@ -20,4 +20,8 @@ export class FilterProductsDto {
   @Transform(({ value }) => +value)
   @IsOptional()
   user_id?: number;
+
+  @IsString()
+  @IsOptional()
+  category?: string;
 }

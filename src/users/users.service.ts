@@ -16,11 +16,13 @@ import { ConfigService } from '@nestjs/config';
 import { CreateOauthUserDto } from './dto/create-user-oauth.dto';
 import { ChatService } from 'src/chat/chat.service';
 import { ProductsService } from 'src/products/products.service';
+import { ReputationService } from 'src/reputation/reputation.service';
 
 type UserWithRelations = Prisma.UserGetPayload<{
   include: {
     chats: true;
     products: true;
+    orders: true;
   };
 }>;
 
@@ -33,6 +35,7 @@ export class UsersService {
     private readonly configService: ConfigService,
     private readonly chatService: ChatService,
     private readonly productsService: ProductsService,
+    private readonly reputationService: ReputationService,
   ) {}
 
   async getAllUser(): Promise<User[]> {
@@ -148,6 +151,7 @@ export class UsersService {
       include: {
         chats: true,
         products: true,
+        orders: true,
       },
     });
 
@@ -242,5 +246,30 @@ export class UsersService {
     });
 
     return user;
+  }
+
+  async getUserSales(user_id: number) {
+    return this.prisma.order.findMany({
+      where: {
+        product: {
+          userId: user_id,
+        },
+      },
+    });
+  }
+
+  async getProfile(user_id: number) {
+    const user = await this.findById(user_id);
+    const userSales = await this.getUserSales(user_id);
+    const reputation = await this.reputationService.getUserReputation(user_id);
+
+    return {
+      products: user.products,
+      avatar: user.profile_picture,
+      name: user.name,
+      numberOfSales: userSales.length,
+      numberOfOrders: user.orders.length,
+      ...reputation,
+    };
   }
 }

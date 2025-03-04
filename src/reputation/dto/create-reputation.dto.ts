@@ -1,4 +1,4 @@
-import { IsInt, IsString } from 'class-validator';
+import { IsInt, IsString, Max, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateReputationDto {
@@ -7,12 +7,17 @@ export class CreateReputationDto {
     example: '5',
   })
   @IsInt()
-  readonly score: number;
+  @Min(1)
+  @Max(5)
+  score: number;
 
   @ApiProperty({
     description: 'Comentario de la reputación',
     example: 'Esto es una reputación',
   })
   @IsString()
-  readonly comment: string;
+  comment: string;
+
+  @IsString()
+  toUserId: number;
 }
