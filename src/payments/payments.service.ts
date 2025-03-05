@@ -39,8 +39,11 @@ export class PaymentsService {
     return customer;
   }
 
-  private async createStripeProduct(product_id: number) {
-    const product = await this.productsService.getProductById(product_id);
+  private async createStripeProduct(product_id: number, user_id: number) {
+    const product = await this.productsService.getProductById(
+      product_id,
+      user_id,
+    );
 
     const stripeProduct = await this.stripeClient.products.create({
       name: product.name,
@@ -59,26 +62,29 @@ export class PaymentsService {
     return stripeProduct;
   }
 
-  private async getStripeProduct(product_id: number) {
-    const product = await this.productsService.getProductById(product_id);
+  private async getStripeProduct(product_id: number, user_id: number) {
+    const product = await this.productsService.getProductById(
+      product_id,
+      user_id,
+    );
 
     const stripeProduct = await this.stripeClient.products.search({
-      query: `metadata['product_id']:'${product.id}'`,
+      query: `metadata['product_id']:'${product.id} AND amount=${product.price}'`,
     });
 
     return stripeProduct;
   }
 
   async createPayment(userId: number, productId: number) {
-    let poduct = (await this.getStripeProduct(productId))?.[0];
+    let product = (await this.getStripeProduct(productId, userId))?.[0];
     let customer = (await this.getStripeCustomer(userId))?.[0];
 
     if (!customer) {
       customer = await this.createStripeCustomer(userId);
     }
 
-    if (!poduct) {
-      poduct = await this.createStripeProduct(productId);
+    if (!product) {
+      product = await this.createStripeProduct(productId, userId);
     }
 
     let order = await this.ordersService.getOrderByUserIdAndProductId(
@@ -91,7 +97,7 @@ export class PaymentsService {
     }
 
     const session = await this.stripeClient.checkout.sessions.create({
-      line_items: [{ price: poduct.default_price, quantity: 1 }],
+      line_items: [{ price: product.default_price, quantity: 1 }],
       mode: 'payment',
       customer: customer.id,
       payment_intent_data: {

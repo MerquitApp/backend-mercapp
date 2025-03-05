@@ -35,6 +35,24 @@ export class OfferController {
     );
   }
 
+  @Patch('/accept/:id')
+  accept(@Param('id') id: string, @Req() req) {
+    const userId = req.user.user_id;
+    return this.offerService.accept(+id, userId);
+  }
+
+  @Patch('/reject/:id')
+  reject(@Param('id') id: string, @Req() req) {
+    const userId = req.user.user_id;
+    return this.offerService.reject(+id, userId);
+  }
+
+  @Get('seller')
+  getOffersBySeller(@Req() req) {
+    const userId = req.user.user_id;
+    return this.offerService.getSellerOffers(userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.offerService.findOne(+id);
