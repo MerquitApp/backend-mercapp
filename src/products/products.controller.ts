@@ -37,10 +37,9 @@ export class ProductsController {
     summary: 'Obtener todos productos',
     description: 'Obtiene una lista de todos los productos.',
   })
-  getAllProduct(@Query() query: FilterProductsDto) {
-    return this.productsService.getAllProduct({
-      ...query,
-    });
+  getAllProduct(@Query() query: FilterProductsDto, @Req() req) {
+    const user = req?.user;
+    return this.productsService.getAllProduct(query, user?.user_id);
   }
 
   @UseGuards(OptionalJwtAuthGuard)

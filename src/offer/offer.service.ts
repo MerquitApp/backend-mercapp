@@ -1,4 +1,10 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateOfferDto } from './dto/update-offer.dto';
 import { PrismaService } from 'src/common/db/prisma.service';
@@ -8,11 +14,23 @@ import { ProductsService } from 'src/products/products.service';
 
 const include = {
   user: true,
+  product: {
+    include: {
+      images: true,
+      cover_image: true,
+    },
+  },
 };
 
 type Offer = Prisma.OfferGetPayload<{
   include: {
     user: true;
+    product: {
+      include: {
+        images: true;
+        cover_image: true;
+      };
+    };
   };
 }> & {
   user: {
@@ -26,6 +44,7 @@ export class OfferService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    @Inject(forwardRef(() => ProductsService))
     private readonly productsService: ProductsService,
   ) {}
 
@@ -122,11 +141,81 @@ export class OfferService {
     }
   }
 
+  async accept(id: number, user_id: number) {
+    const offer = await this.findOne(id);
+    const isAllowed = offer.product.userId === user_id;
+
+    if (!isAllowed) {
+      throw new UnauthorizedException();
+    }
+
+    await this.notificationsService.createNotification(
+      offer.userId,
+      `Tu oferta de ${offer.product.name} ha sido aceptada`,
+    );
+
+    await this.prisma.offer.update({
+      where: {
+        id,
+      },
+      data: {
+        status: 'accepted',
+      },
+    });
+  }
+
+  async reject(id: number, user_id: number) {
+    const offer = await this.findOne(id);
+    const isAllowed = offer.product.userId === user_id;
+
+    if (!isAllowed) {
+      throw new UnauthorizedException();
+    }
+
+    await this.notificationsService.createNotification(
+      offer.userId,
+      `Tu oferta de ${offer.product.name} ha sido rechazada`,
+    );
+
+    await this.prisma.offer.update({
+      where: {
+        id,
+      },
+      data: {
+        status: 'declined',
+      },
+    });
+  }
+
   async remove(id: number) {
     try {
       await this.prisma.offer.delete({
         where: { id },
       });
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Internal Server Error!');
+    }
+  }
+
+  async getUserProductOffer(
+    user_id: number,
+    product_id: number,
+  ): Promise<Offer> {
+    try {
+      const offer = await this.prisma.offer.findFirst({
+        where: {
+          product: {
+            id: product_id,
+          },
+          user: {
+            user_id,
+          },
+        },
+        include,
+      });
+
+      return offer;
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException('Internal Server Error!');
@@ -143,6 +232,25 @@ export class OfferService {
         },
         include,
       });
+      return offers;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Internal Server Error!');
+    }
+  }
+
+  async getSellerOffers(user_id: number): Promise<Offer[]> {
+    try {
+      const offers = await this.prisma.offer.findMany({
+        where: {
+          product: {
+            userId: user_id,
+          },
+          status: 'pending',
+        },
+        include,
+      });
+
       return offers;
     } catch (error) {
       console.log(error);

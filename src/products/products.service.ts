@@ -1,5 +1,7 @@
 import {
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,10 +10,11 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ObjectStorageService } from 'src/object-storage/object-storage.service';
 import { CategoriesService } from 'src/categories/categories.service';
-import { Prisma, Product, User } from '@prisma/client';
+import { Offer, Prisma, Product, User } from '@prisma/client';
 import { ProductImagesService } from 'src/product-images/product-images.service';
 import { FilterProductsDto } from './dto/filter-products.dto';
 import { LikesService } from 'src/likes/likes.service';
+import { OfferService } from 'src/offer/offer.service';
 
 type ProductWithRelations = Prisma.ProductGetPayload<{
   include: {
@@ -30,6 +33,8 @@ export class ProductsService {
     private readonly categoriesService: CategoriesService,
     private readonly productImageService: ProductImagesService,
     private readonly likesService: LikesService,
+    @Inject(forwardRef(() => OfferService))
+    private readonly offerService: OfferService,
   ) {}
 
   async getProductById(
@@ -37,9 +42,11 @@ export class ProductsService {
     user_id?: number,
   ): Promise<ProductWithRelations & { isLiked: boolean }> {
     let isLiked = false;
+    let offer: Offer | null = null;
 
     if (user_id) {
       isLiked = await this.likesService.getIsProductLiked(user_id, id);
+      offer = await this.offerService.getUserProductOffer(user_id, id);
     }
 
     const product = await this.prisma.product.findUnique({
@@ -54,6 +61,10 @@ export class ProductsService {
       },
     });
 
+    if (offer && offer.status === 'accepted') {
+      product.price = offer.price;
+    }
+
     return {
       ...product,
       isLiked,
@@ -62,6 +73,7 @@ export class ProductsService {
 
   async getAllProduct(
     filterProductsDto: FilterProductsDto,
+    user_id?: number,
   ): Promise<ProductWithRelations[]> {
     const categoryFilter = filterProductsDto.category
       ? {
@@ -76,12 +88,19 @@ export class ProductsService {
       : {};
 
     try {
-      return await this.prisma.product.findMany({
+      const products = await this.prisma.product.findMany({
         include: {
           categories: true,
           images: true,
           cover_image: true,
           user: true,
+          offers: {
+            where: {
+              user: {
+                user_id: user_id,
+              },
+            },
+          },
         },
         take: filterProductsDto.limit,
         skip: filterProductsDto.offset,
@@ -96,6 +115,18 @@ export class ProductsService {
           isActive: true,
           ...categoryFilter,
         },
+      });
+
+      return products.map((product) => {
+        const offer = product.offers.find(
+          (offer) => offer.status === 'accepted',
+        );
+
+        if (offer) {
+          product.price = offer.price;
+        }
+
+        return product;
       });
     } catch (error) {
       console.log(error);
