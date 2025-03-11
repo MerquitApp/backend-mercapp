@@ -39,6 +39,20 @@ export class ReputationController {
     return this.reputationService.createReputation(createReputationDto, user);
   }
 
+  @Get('/user/:user_id')
+  @ApiOperation({
+    summary: 'Obtener reputación de un usuario',
+    description: 'Obtiene la reputación de un usuario.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reputación encontrada.',
+    type: ReputationEntity,
+  })
+  async findAllUser(@Param('user_id') user_id: number): Promise<Reputation> {
+    return this.reputationService.getUserReputation(user_id);
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener reputación',
@@ -50,7 +64,7 @@ export class ReputationController {
     description: 'Reputación encontrada.',
     type: ReputationEntity,
   })
-  async findAll(@Param('id') id: number): Promise<Reputation> {
+  async findById(@Param('id') id: number): Promise<Reputation> {
     return this.reputationService.getReputation(id);
   }
 }

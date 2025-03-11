@@ -9,6 +9,9 @@ import {
 import { ChatWsService } from './chat-ws.service';
 import type { Socket, Server } from 'socket.io';
 import { MessageDto } from './dto/message.dto';
+import { ClassRequestDto } from './dto/call-request.dto';
+import { AcceptCallDto } from './dto/accept-call.dto';
+import { HangupCallDto } from './dto/hangup-call.dto';
 
 @WebSocketGateway()
 export class ChatWsGateway implements OnGatewayConnection {
@@ -31,6 +34,30 @@ export class ChatWsGateway implements OnGatewayConnection {
   ) {
     const user = await this.chatWsService.getUserIdAuth(client);
     return this.chatWsService.handleMessage(client, messageDto, user);
+  }
+
+  @SubscribeMessage('call-request')
+  handleCallRequest(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: ClassRequestDto,
+  ) {
+    return this.chatWsService.handleCallRequest(client, data);
+  }
+
+  @SubscribeMessage('accept-call')
+  handleAcceptCall(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: AcceptCallDto,
+  ) {
+    return this.chatWsService.handleAcceptCall(client, data);
+  }
+
+  @SubscribeMessage('hangup-call')
+  handleHangupCall(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: HangupCallDto,
+  ) {
+    return this.chatWsService.handleHangupCall(client, data);
   }
 
   @SubscribeMessage('join-call')

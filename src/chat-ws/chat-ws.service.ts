@@ -9,6 +9,9 @@ import type { Socket } from 'socket.io';
 import { MessageDto } from './dto/message.dto';
 import { MessageService } from 'src/message/message.service';
 import { User } from '@prisma/client';
+import { ClassRequestDto } from './dto/call-request.dto';
+import { AcceptCallDto } from './dto/accept-call.dto';
+import { HangupCallDto } from './dto/hangup-call.dto';
 
 @Injectable()
 export class ChatWsService {
@@ -23,15 +26,22 @@ export class ChatWsService {
 
   async handleMessage(client: Socket, messageDto: MessageDto, user: User) {
     try {
-      await this.messageService.createMessage({
+      const message = await this.messageService.createMessage({
         ...messageDto,
         user_id: user.user_id,
       });
+      client.to(`${messageDto.chat_id}`).emit('message', message);
     } catch (error) {
       console.log(error);
     }
+  }
 
-    return client.to(`${messageDto.chat_id}`).emit('message', messageDto);
+  async handleCallRequest(client: Socket, data: ClassRequestDto) {
+    client.to(data.chatId.toString()).emit('call-request', { id: data.callId });
+  }
+
+  async handleAcceptCall(client: Socket, data: AcceptCallDto) {
+    client.to(data.chatId.toString()).emit('accept-call');
   }
 
   handleOffer(callId: string, offer: string) {
@@ -40,6 +50,10 @@ export class ChatWsService {
       answerCandidates: [],
       offerCandidates: [],
     };
+  }
+
+  handleHangupCall(client: Socket, data: HangupCallDto) {
+    client.to(data.chatId.toString()).emit('hangup-call');
   }
 
   handleAnswer(client: Socket, callId: string, answer: string) {
@@ -104,7 +118,7 @@ export class ChatWsService {
     }
 
     const chats = await this.chatService.getChatsByUserId(user.user_id);
-    const chatsIds = chats.map((chat) => chat.id);
+    const chatsIds = chats.map((chat) => chat.id.toString());
 
     client.join([user.user_id, ...chatsIds]);
   }

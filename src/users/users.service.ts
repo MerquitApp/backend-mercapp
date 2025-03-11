@@ -117,10 +117,17 @@ export class UsersService {
     return user;
   }
 
-  async findUserByGoogleId(google_id: string): Promise<User | null> {
+  async findUserByGoogleIdOrEmail(google_id: string, email: string) {
     const user = await this.prisma.user.findFirst({
       where: {
-        google_id,
+        OR: [
+          {
+            google_id,
+          },
+          {
+            email,
+          },
+        ],
       },
     });
 
@@ -150,7 +157,12 @@ export class UsersService {
       },
       include: {
         chats: true,
-        products: true,
+        products: {
+          include: {
+            images: true,
+            cover_image: true,
+          },
+        },
         orders: true,
       },
     });

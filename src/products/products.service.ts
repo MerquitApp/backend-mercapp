@@ -75,18 +75,6 @@ export class ProductsService {
     filterProductsDto: FilterProductsDto,
     user_id?: number,
   ): Promise<ProductWithRelations[]> {
-    const categoryFilter = filterProductsDto.category
-      ? {
-          categories: {
-            some: {
-              category: {
-                name: filterProductsDto.category,
-              },
-            },
-          },
-        }
-      : {};
-
     try {
       const products = await this.prisma.product.findMany({
         include: {
@@ -113,7 +101,15 @@ export class ProductsService {
             user_id: filterProductsDto.user_id,
           },
           isActive: true,
-          ...categoryFilter,
+          categories: {
+            some: {
+              category: {
+                name: {
+                  contains: filterProductsDto.category,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -162,7 +158,12 @@ export class ProductsService {
           );
 
           if (categoryObj) {
-            categories_connection.push(categoryObj.id);
+            categories_connection.push({ id: categoryObj.id });
+          } else {
+            const newCategory = await this.categoriesService.createCategory({
+              name: category,
+            });
+            categories_connection.push({ id: newCategory.id });
           }
         }
       }
@@ -184,7 +185,11 @@ export class ProductsService {
             },
           },
           categories: {
-            connect: categories_connection,
+            create: categories_connection.map((category) => ({
+              category: {
+                connect: { id: category.id },
+              },
+            })),
           },
           images: {
             create: images_url.map((url) => ({

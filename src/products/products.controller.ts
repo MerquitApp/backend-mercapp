@@ -32,6 +32,17 @@ import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-auth.guard';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @UseGuards(OptionalJwtAuthGuard)
+  @Get('/user')
+  @ApiOperation({
+    summary: 'Obtener todos productos de un usuario',
+    description: 'Obtiene una lista de todos los productos de un usuario.',
+  })
+  getAllProductByUser(@Query() query: FilterProductsDto, @Req() req) {
+    const user = req?.user;
+    return this.productsService.getAllProduct(query, user?.user_id);
+  }
+
   @Get()
   @ApiOperation({
     summary: 'Obtener todos productos',

@@ -77,7 +77,13 @@ export class OrdersService {
         userId,
       },
       include: {
-        product: true,
+        user: true,
+        product: {
+          include: {
+            images: true,
+            cover_image: true,
+          },
+        },
       },
     });
   }

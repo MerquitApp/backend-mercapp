@@ -1,4 +1,4 @@
-import { IsInt, IsString, Max, Min } from 'class-validator';
+import { IsInt, IsNumber, IsString, Max, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateReputationDto {
@@ -18,6 +18,6 @@ export class CreateReputationDto {
   @IsString()
   comment: string;
 
-  @IsString()
+  @IsNumber()
   toUserId: number;
 }

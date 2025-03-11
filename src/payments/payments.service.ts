@@ -136,7 +136,7 @@ export class PaymentsService {
       orderNumber: session.metadata.order_id,
       orderDate: new Date().toLocaleDateString(),
       orderTotal: session.amount_total / 100,
-      orderLink: `${this.configService.get('FRONTEND_URL')}/profile/products`,
+      orderLink: `${this.configService.get('FRONTEND_URL')}/profile/history`,
     });
   }
 
